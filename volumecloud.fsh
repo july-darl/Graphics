@@ -140,7 +140,7 @@ float GetCloudBaseShape(vec3 pos)
 
 float GetCloudDetailShape(vec3 pos)
 {
-    pos = pos/20;
+    pos = pos/10;
     pos.x += time/3;
 
     float c = worley_fractal(pos);
@@ -176,37 +176,6 @@ float GetCloudDensity(vec3 pos)
     return thick * base_density * detail_density;
 }
 
-vec3 GetLocalLight(vec3 pos)
-{//
- // float dist = distance(pos,vec3(0,80,0));		//到光源的距离
- // vec3 dir = vec3(0.0, 1.0, 0.0);
- // vec3 light = vec3(1,1,1) * dist;		//计算当地光
- //
- // float shadow = 1.0f;
- // float shadowNum = 2.0;
- // float step = 1.0/ shadowNum;
- //     //考虑阴影
- // for (float i = 0.5; i < shadowNum; i++)
- // {
- //     float density = GetLocalDensity(pos + dir*i*step);
- //     shadow *= exp(-step*density);
- // }
- // light *= shadow;
-    return vec3(1,1,1);
-}
-
-
-
-vec3 ToneMapping (vec3 x)
-{
-    const float A = 0.15;
-    const float B = 0.50;
-    const float C = 0.10;
-    const float D = 0.20;
-    const float E = 0.02;
-    const float F = 0.30;
-    return ((x*(A*x + C * B) + D * E) / (x*(A*x + B) + D * F)) - E / F;
-}
 
 vec3 sky_color = vec3(0.4,0.5,0.6);
 void main(void)
@@ -215,20 +184,21 @@ void main(void)
     float density = 0.0;
     vec3 cloud_color = vec3(0);
     vec3 worldPos = v_worldPos;
-    vec3 step = 0.3 *normalize(v_worldPos - cameraPos);
+    float stepLength = 1;
+    vec3 step = 0.5 *normalize(v_worldPos - cameraPos);
 
     worldPos.y += 200;
-    int stepNum = 30;
-    float beers = 1;
+    int stepNum = 20;
 
+    vec3 light_color;
     for(int i = 0; i < stepNum; i++)
     {
         vec3 pos = worldPos + i * step;
-        if(pos.y > 230) break;
+
         float sampled_density = GetCloudDensity(pos);
         density += sampled_density;
 
-        vec3 lightDir = pos - vec3(0,200,0);
+        vec3 lightDir = pos - vec3(0,280,0);
         vec3 viewDir = pos - cameraPos;
         float cos_angle = dot(normalize(lightDir), normalize(-viewDir));
         float inG = 0.2;
@@ -236,34 +206,17 @@ void main(void)
          / 4.0 * 3.1415;
 
         float powder = (1 - exp(-2 * density));
-        float beers = exp(-0.5 * density);
-        cloud_color +=  vec3(1,1,1) * beers;//2 * beers * powder + vec3(1,0,0) * hg * beers;
-
-
-        if(density > 5) break;
-        // if(cloud_color.x >= 1) break;
-        // * powder * hg / 2;
-        //if(cloud_color > 1)
-        //{
-        //    cloud_color = 1;
-        //    break;
-        //}
+        float beers = exp(-1 * density);
+      //  light_color += vec3(1,0,0) * hg * beers;
+        cloud_color +=  vec3(1,1,1) * beers ;//+ vec3(1,0,0) * hg * beers   ;// + vec3(1,0,0) * hg * beers;
     }
 
-    //cloud_color = ToneMapping(cloud_color);
+
     cloud_color = cloud_color / (1 + cloud_color);
+
     density = density/(density + 1) * 1;
 
-
-    Color.xyz = mix(sky_color,(cloud_color),density);
-  //
-  //float thick = noise_sum(vec3(worldPos.x / 70, 0.0, worldPos.z / 70));//noise_sum(vec3(worldPos.x / 50, 0.0, worldPos.z / 50)) / 2;
-  //if(thick > 1)
-  //    Color.xyz = vec3(1,0,0);
-  //else if(thick < 0)
-  //    Color.xyz = vec3(1,1,0);
-  //else
-  //Color.xyz = vec3(thick,thick,thick);
+    Color.xyz = mix(sky_color,(cloud_color)/1,density);
 
     NormalAndDepth = vec4(1,1,1,1);
 }

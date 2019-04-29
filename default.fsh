@@ -304,29 +304,87 @@ vec3 ComputeWorldPos(float depth)
     vec4 ret = Inverse_ViewMatrix * pos;
     return ret.xyz / ret.w;
 }
+float value_fractal(vec3 p)
+{
+    float f = 0.0;
+    p = p * 4.0;
+    f += 1.0000 * noise(p); p = 2.0 * p;
+    f += 0.5000 * noise(p); p = 2.0 * p;
+    f += 0.2500 * noise(p); p = 2.0 * p;
+    f += 0.1250 * noise(p); p = 2.0 * p;
+    f += 0.0625 * noise(p); p = 2.0 * p;
+
+   return f/2;
+}
+
+float worley_fractal(vec3 p)
+{
+    float f = 0.0;
+    p = p * 4.0;
+    f += 1.0000 * worley(p); p = 2.0 * p;
+    f += 0.5000 * worley(p); p = 2.0 * p;
+
+
+   return f/2;
+}
 
 float GetHeightDensity(float height)
 {
-    if(height>300) return 0;
-    else if(height > 200) 1;
-    return height/200;
+    if(height > 200) return 1;
+    else if(height > 120) return (height-120)/80;
+    return 0;
 }
 
-float GetLocalDensity(vec3 pos)
+float GetCloudBaseShape(vec3 pos)
 {
-    vec3 t = pos / 50;
-    t.x += fTime;
-    float c1 = fracNoise(t, 3);
+    pos = pos/500;
+    pos.x += fTime/3;
+    float c1 = value_fractal(pos);
+    float c2 = worley(pos);
+
+    c2 = 1 - c2;
+
+    float shape = mix(c1,c2,mixRatio);
+   // shape = clamp((shape - thickness) / (1 - thickness),0,1) ;
+    return shape;
+}
+
+float GetCloudDetailShape(vec3 pos)
+{
+    pos = pos/100;
+    pos.x += fTime/3;
+
+    float c = worley_fractal(pos);
+
+    c = 1 - c;
+   // c = clamp((c - thickness) / (1 - thickness),0,1) ;
+    return c;
+}
+
+
+float GetCloudThickness(vec3 pos)
+{
+    vec3 t = vec3(pos.x, 0.0, pos.z)/100;
+
+    t.x += fTime/3;
+
+    float c1 = value_fractal(t);
     float c2 = worley(t);
 
     c2 = 1 - c2;
 
-    float sampled_density = mix(c1,c2,0.7);
+    float thick = mix(c1,c2,mixRatio);
+    thick = clamp((thick - 0.5) / (1 - 0.5),0,1) ;
 
-    sampled_density = clamp((sampled_density - 0.7) / (1 - 0.7),0,1) ;
-    sampled_density *= GetHeightDensity(pos.y);
+    return thick;
+}
 
-    return sampled_density;
+float GetCloudDensity(vec3 pos)
+{
+    float thick = GetCloudThickness(pos);
+    float base_density = GetCloudBaseShape(pos);
+    float detail_density = GetCloudDetailShape(pos);
+    return thick * base_density * detail_density;
 }
 
 void main(void)
@@ -564,52 +622,63 @@ void main(void)
         // gl_FragColor = vec4(depth,depth,depth, 1);
 
     }
-    else
+    else if(result ==vec4(1,1,1,1))
     {
         // texture2D(Color, v_texcoord).xyz
-        gl_FragColor = vec4(texture2D(Color, v_texcoord).xyz , 1);
-      //  gl_FragColor = vec4(sky_color + I * sun_color, 1);
+     //   gl_FragColor = vec4(texture2D(Color, v_texcoord).xyz , 1);
+        gl_FragColor = vec4(sky_color + I * sun_color, 1);
     }
-//else
-//{
-//    float density = 0.0;
-//
-//    vec3 beginPos;
-//    beginPos.x = result.t;
-//    beginPos.y = result.z;
-//    beginPos.z = result.w;
-//    beginPos = 2 * beginPos - 1;
-//    beginPos *= 200;
-//
-//    vec3 step = 1.0 * normalize(beginPos - cameraPos);
-//    bool bInit = false;
-//    vec3 cloud_color = vec3(0);
-//
-//    int stepNum = 16;
-//    for(int i = 0; i < stepNum; i++)
-//    {
-//        vec3 pos = beginPos + i * step;
-//
-//
-//        float sampled_density = GetLocalDensity(pos);
-//        density += sampled_density / stepNum;
-//
-//
-//     vec3 lightDir = pos - vec3(5,230,5);
-//     vec3 viewDir = pos - cameraPos;
-//     float cos_angle = dot(normalize(lightDir), normalize(-viewDir));
-//     float inG = 0.3;
-//     float hg = ((1.0 - inG * inG) / pow((1.0 + inG * inG - 2.0 * inG * cos_angle), 3.0/2.0))
-//         / 4.0 * 3.1415;
-//
-//        float powder = (1 - exp(-2 * density));
-//        float beers = exp(-density);
-//        cloud_color += vec3(1,1,1) * hg * 2 * beers * powder;
-//    }
-//
-//    cloud_color = cloud_color / (0.5 + cloud_color);
-//    if(density < 0.7) density = density/(density + 0.1) * 0.7;
-//
-//    gl_FragColor = vec4(mix(sky_color,cloud_color,density),1);
-//}
+    else
+    {
+        float density = 0.0;
+
+        vec3 beginPos;
+        beginPos.x = result.t;
+        beginPos.y = result.z;
+        if(beginPos.y > 0)
+        {
+        beginPos.z = result.w;
+
+        beginPos.x *= 200;
+        beginPos.z *= 200;
+        beginPos.y *= 5;
+        beginPos.y = 200;
+       // float density = 0.0;
+        vec3 cloud_color = vec3(0);
+
+        float stepLength = 1;
+        vec3 step = 0.5 *normalize(beginPos - cameraPos);
+
+        int stepNum = 20;
+
+        vec3 light_color;
+        for(int i = 0; i < stepNum; i++)
+        {
+            vec3 pos = beginPos + i * step;
+
+            float sampled_density = GetCloudDensity(pos) * GetHeightDensity(pos.y);
+            density += sampled_density;
+
+            vec3 lightDir = pos - vec3(0,280,0);
+            vec3 viewDir = pos - cameraPos;
+            float cos_angle = dot(normalize(lightDir), normalize(-viewDir));
+            float inG = 0.2;
+            float hg = ((1.0 - inG * inG) / pow((1.0 + inG * inG - 2.0 * inG * cos_angle), 3.0/2.0))
+             / 4.0 * 3.1415;
+
+            float powder = (1 - exp(-2 * density));
+            float beers = exp(-2 * density);
+          //  light_color += vec3(1,0,0) * hg * beers;
+            cloud_color +=  vec3(1,1,1) * beers * hg * powder * 2 ;//+ vec3(1,0,0) * hg * beers   ;// + vec3(1,0,0) * hg * beers;
+        }
+
+
+        cloud_color = cloud_color / (1 + cloud_color);
+        density = density/(density + 1) * 1;
+
+        gl_FragColor = vec4(mix(sky_color,cloud_color,density),1);
+        }
+        else
+            gl_FragColor = vec4(sky_color,1);
+    }
 }
