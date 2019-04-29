@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectlist>
+    <object name = "体积云" type = "VolumeCloud" shape = "cube" position = "0,20,0" rotation = "0,0,0" scale = "40,1,40" bCastShadow = "0" />
+</objectlist>

@@ -1,0 +1,38 @@
+<RCC>
+    <qresource prefix="/">
+        <file>commonTex.vsh</file>
+        <file>commonTex.fsh</file>
+        <file>colorfshader.fsh</file>
+        <file>parallex.vsh</file>
+        <file>parallex.fsh</file>
+        <file>water.fsh</file>
+        <file>water.vsh</file>
+        <file>shadowmap.vsh</file>
+        <file>shadowmap.fsh</file>
+        <file>hatch.vsh</file>
+        <file>hatch.fsh</file>
+        <file>outline.vsh</file>
+        <file>outline.fsh</file>
+        <file>gbuffer.vsh</file>
+        <file>gbuffer.fsh</file>
+        <file>default.vsh</file>
+        <file>icon.fsh</file>
+        <file>icon.vsh</file>
+        <file>default.fsh</file>
+        <file>skybox.fsh</file>
+        <file>skybox.vsh</file>
+        <file>cubemap.vsh</file>
+        <file>cubemap.fsh</file>
+        <file>irradiancemap.vsh</file>
+        <file>irradiancemap.fsh</file>
+        <file>prefilter.vsh</file>
+        <file>prefilter.fsh</file>
+        <file>brdflut.vsh</file>
+        <file>brdflut.fsh</file>
+        <file>snowmap.vsh</file>
+        <file>snowmap.fsh</file>
+        <file>colorvshader.vsh</file>
+        <file>volumecloud.vsh</file>
+        <file>volumecloud.fsh</file>
+    </qresource>
+</RCC>
