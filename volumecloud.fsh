@@ -246,5 +246,3 @@ void main(void)
 
     NormalAndDepth = vec4(1,1,1,1);
 }
-
-

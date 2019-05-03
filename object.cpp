@@ -319,10 +319,10 @@ void ObjectInfo::Render()
     DelayRender();
 
     // 屏幕空间后绘制
-   for(size_t i = 0;i < vecObj.size(); i++)
-   {
-       vecObj[i]->LateRender();
-   }
+  // for(size_t i = 0;i < vecObj.size(); i++)
+  // {
+  //     vecObj[i]->LateRender();
+  // }
 }
 
 void ObjectInfo::DelayRender()

@@ -1,4 +1,4 @@
-﻿#ifndef PHONG_H
+#ifndef PHONG_H
 #define PHONG_H
 
 #include "object.h"
