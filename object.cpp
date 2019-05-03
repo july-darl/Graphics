@@ -16,7 +16,7 @@
 #include "noise.h"
 ObjectInfo* ObjectInfo::objInfo = nullptr;
 
-void Object::Draw()
+void Object::Draw(bool bTess)
 {
    // qDebug() << shape;
     switch(shape)
@@ -35,7 +35,7 @@ void Object::Draw()
     }
 }
 
-void Object::Draw(QOpenGLShaderProgram* p)
+void Object::Draw(QOpenGLShaderProgram* p, bool bTess)
 {
    // qDebug() << shape;
     switch(shape)
@@ -73,7 +73,7 @@ void Object::GenSnowDepth()
     snowDepthProgram->setUniformValue("zFar", RenderCommon::Inst()->GetZFarPlane());
     snowDepthProgram->setUniformValue("ModelMatrix",  modelMatrix);
     snowDepthProgram->setUniformValue("IT_ModelMatrix",  IT_modelMatrix);
-    Draw();
+    Draw(snowDepthProgram);
 }
 
 bool Object::IsOnScreen()
@@ -302,7 +302,7 @@ void ObjectInfo::Render()
         vecObj[i]->Draw();
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-     auto bloomBuffer = CResourceInfo::Inst()->CreateFrameBuffer("Bloom",screenX/2,screenY/2);
+    auto bloomBuffer = CResourceInfo::Inst()->CreateFrameBuffer("Bloom",screenX/2,screenY/2);
     glBindFramebuffer(GL_FRAMEBUFFER, bloomBuffer->frameBuffer);
     glClearColor(0,0,0,1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -318,11 +318,11 @@ void ObjectInfo::Render()
 
     DelayRender();
 
-    // 屏幕空间后绘制
-  // for(size_t i = 0;i < vecObj.size(); i++)
-  // {
-  //     vecObj[i]->LateRender();
-  // }
+
+    for(size_t i = 0;i < vecObj.size(); i++)
+    {
+        vecObj[i]->LateRender();
+    }
 }
 
 void ObjectInfo::DelayRender()

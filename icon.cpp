@@ -6,8 +6,6 @@ REGISTER(Billboard)
 
 void Billboard::Create()
 {
-    initializeOpenGLFunctions();
-
     program = CResourceInfo::Inst()->CreateProgram("icon.vsh","icon.fsh","icon");
 }
 
@@ -21,9 +19,11 @@ void Billboard::SetImage(QImage& image)
 
 void Billboard::LateRender()
 {
-    glDepthMask(GL_FALSE);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    QOpenGLFunctions* gl = QOpenGLContext::currentContext()->functions();
+
+    gl->glDepthMask(GL_FALSE);
+    gl->glEnable(GL_BLEND);
+    gl->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     program->bind();
     program->setUniformValue("ModelMatrix",modelMatrix);
@@ -33,14 +33,15 @@ void Billboard::LateRender()
         program->setUniformValue("bFixZ",true);
     else
         program->setUniformValue("bFixZ",false);
-    glActiveTexture(GL_TEXTURE0);
+
+    gl->glActiveTexture(GL_TEXTURE0);
     pTex->bind();
     program->setUniformValue("LightTex", 0);
 
     RenderCommon::Inst()->GetGeometryEngine()->drawPlane(program);
 
-    glDisable(GL_BLEND);
-    glDepthMask(GL_TRUE);
+    gl->glDisable(GL_BLEND);
+    gl->glDepthMask(GL_TRUE);
 }
 
 void Billboard::UpdateLocation()

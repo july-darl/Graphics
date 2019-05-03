@@ -23,7 +23,7 @@ public:
 
     void                  Create() override;
     void                  LateRender() override;
-    void                  Draw() override {} //do nothing
+    void                  Draw(bool = false) override {} //do nothing
     void                  UpdateLocation() override;
 };
 

@@ -2,12 +2,12 @@
 #define OPENGLWIDGET_H
 
 #include <QOpenGLWidget>
-#include <QOpenGLFunctions>
+#include <QOpenGLExtraFunctions>
 #include <QBasicTimer>
 
 class GeometryEngine;
 
-class COpenGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
+class COpenGLWidget : public QOpenGLWidget, protected QOpenGLExtraFunctions
 {
     Q_OBJECT
 public:

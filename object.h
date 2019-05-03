@@ -9,7 +9,7 @@
 
 using namespace std;
 
-class Object : protected QOpenGLExtraFunctions
+class Object
 {
 protected:
     QOpenGLShaderProgram* program = nullptr;
@@ -39,8 +39,8 @@ public:
     virtual void         Render() { }
     virtual void         SecondRender() { }
     virtual void         LateRender() { }
-    virtual void         Draw();
-    virtual void         Draw(QOpenGLShaderProgram*);
+    virtual void         Draw(bool bTess = false);
+    virtual void         Draw(QOpenGLShaderProgram*,bool bTess = false);
     virtual              ~Object() { }
 };
 

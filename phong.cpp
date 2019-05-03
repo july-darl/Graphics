@@ -5,12 +5,13 @@
 REGISTER(Phong)
 void Phong::Create()
 {
-    initializeOpenGLFunctions();
     program = CResourceInfo::Inst()->CreateProgram("gbuffer.vsh","gbuffer.fsh","gbuffer");
 }
 
 void Phong::Render()
 {
+    QOpenGLFunctions* gl = QOpenGLContext::currentContext()->functions();
+
     int mode = 0;
     if(bSSR)
     {
@@ -36,8 +37,8 @@ void Phong::Render()
 
     if(albedo != 0)
     {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, albedo);
+        gl->glActiveTexture(GL_TEXTURE0);
+        gl->glBindTexture(GL_TEXTURE_2D, albedo);
         program->setUniformValue("albedo", 0);
         program->setUniformValue("color",QVector3D(-1,-1,-1));
     }
@@ -48,8 +49,8 @@ void Phong::Render()
 
     if(normal != 0)
     {
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, normal);
+        gl->glActiveTexture(GL_TEXTURE1);
+        gl->glBindTexture(GL_TEXTURE_2D, normal);
         program->setUniformValue("normal", 1);
         program->setUniformValue("bUseNormalMap", true);
     }
@@ -60,34 +61,35 @@ void Phong::Render()
 
     if(maskTex != 0)
     {
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, maskTex);
+        gl->glActiveTexture(GL_TEXTURE2);
+        gl->glBindTexture(GL_TEXTURE_2D, maskTex);
         program->setUniformValue("mask", 2);
     }
 
     program->setUniformValue("rough", rough);
     program->setUniformValue("ao", ao);
-
-
-
 }
 
 void Phong::SecondRender()
 {
-    //GLint MaxPatchVertices = 0;
-    //glGetIntegerv(GL_MAX_PATCH_VERTICES, &MaxPatchVertices);
-    //printf("Max supported patch vertices %d\n", MaxPatchVertices);
-    glPatchParameteri(GL_PATCH_VERTICES, 4);
+    QOpenGLFunctions* gl = QOpenGLContext::currentContext()->functions();
 
     int screenX = RenderCommon::Inst()->GetScreenX();
     int screenY = RenderCommon::Inst()->GetScreenY();
-    int width = screenX/2;
-    int height = screenY/2;
+    int width = screenX / 2;
+    int height = screenY / 2;
 
-    glViewport(0,0,width,height);
+    gl->glViewport(0,0,width,height);
 
-    auto bloomProgram = CResourceInfo::Inst()->CreateProgram("bloom.vsh","bloom.fsh","bloom");
-
+    QOpenGLShaderProgram* bloomProgram = nullptr;
+    if(!bFire)
+    {
+        bloomProgram = CResourceInfo::Inst()->CreateProgram("bloom.vsh","bloom.fsh","bloom");
+    }
+    else
+    {
+        bloomProgram = CResourceInfo::Inst()->CreateTessProgram("fire.tcsh","fire.tesh","bloom.vsh","bloom.fsh","bloomTess");
+    }
 
     bloomProgram->bind();
 
@@ -98,18 +100,17 @@ void Phong::SecondRender()
 
     if(albedo != 0)
     {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, albedo);
+        gl->glActiveTexture(GL_TEXTURE0);
+        gl->glBindTexture(GL_TEXTURE_2D, albedo);
         bloomProgram->setUniformValue("albedo", 0);
         bloomProgram->setUniformValue("color",QVector3D(-1,-1,-1));
     }
     else
     {
-      //  qDebug() << color.x << " " << color.y << " " << color.z;
         bloomProgram->setUniformValue("color",QVector3D(color.x,color.y,color.z));
     }
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, maskTex);
+    gl->glActiveTexture(GL_TEXTURE1);
+    gl->glBindTexture(GL_TEXTURE_2D, maskTex);
     bloomProgram->setUniformValue("Mask", 1);
 
     bloomProgram->setUniformValue("bFire",bFire);
@@ -120,40 +121,39 @@ void Phong::SecondRender()
 
     if(bFire)
     {
-        glActiveTexture(GL_TEXTURE2);
+        gl->glActiveTexture(GL_TEXTURE2);
         CResourceInfo::Inst()->CreateTexture("T_Perlin_Noise_M.TGA")->bind();
         bloomProgram->setUniformValue("perlin", 2);
         bloomProgram->setUniformValue("time",RenderCommon::Inst()->GetTime());
     }
 
-    glActiveTexture(GL_TEXTURE3);
+    gl->glActiveTexture(GL_TEXTURE3);
     CResourceInfo::Inst()->CreateTexture("T_Fire_Tiled_D.TGA")->bind();
     bloomProgram->setUniformValue("fire",3);
 
+    Draw(bloomProgram, true);
 
-
-    Draw(bloomProgram);
-  //  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    glViewport(0,0,screenX,screenY);
+    gl->glViewport(0,0,screenX,screenY);
 
 }
 
 void Phong::SetImage(const QString& path, GLuint& tex, QImage& img)
 {
+    QOpenGLFunctions* gl = QOpenGLContext::currentContext()->functions();
+
     img.load(path);
     img = img.convertToFormat(QImage::Format_RGBA8888);
 
-    glDeleteTextures(1, &tex);
-    glGenTextures(1, &tex);
-    glBindTexture(GL_TEXTURE_2D, tex);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img.width(),
+    gl->glDeleteTextures(1, &tex);
+    gl->glGenTextures(1, &tex);
+    gl->glBindTexture(GL_TEXTURE_2D, tex);
+    gl->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img.width(),
        img.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, img.bits());
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    gl->glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP);
+    gl->glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP);
+    gl->glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void Phong::SetAlbedo(const QString& path)

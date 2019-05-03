@@ -47,7 +47,7 @@ enum EGBufferType
     EGT_Param
 };
 
-class RenderCommon : protected QOpenGLExtraFunctions
+class RenderCommon
 {
 private:
     CLightInfo      lightInfo;

@@ -1,7 +1,7 @@
 #ifndef GEOMETRYENGINE_H
 #define GEOMETRYENGINE_H
 
-#include <QOpenGLFunctions>
+#include <QOpenGLExtraFunctions>
 #include <QOpenGLShaderProgram>
 #include <QOpenGLBuffer>
 
@@ -13,16 +13,15 @@ struct VertexData
     QVector2D texcoord;
 };
 
-class GeometryEngine : protected QOpenGLFunctions
+class GeometryEngine : protected QOpenGLExtraFunctions
 {
 public:
     GeometryEngine();
     virtual ~GeometryEngine();
 
-    void drawPlane(QOpenGLShaderProgram *program);
-    void drawCube(QOpenGLShaderProgram* program);
-    void drawSphere(QOpenGLShaderProgram* program);
-    void drawIcon(QOpenGLShaderProgram* program);
+    void drawPlane(QOpenGLShaderProgram *program,bool bTess = false);
+    void drawCube(QOpenGLShaderProgram* program,bool bTess = false);
+    void drawSphere(QOpenGLShaderProgram* program,bool bTess = false);
 
     void CalNormalAndTangent(VertexData& vertex1, VertexData& vertex2,
                                          VertexData& vertex3);

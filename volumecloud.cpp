@@ -7,12 +7,13 @@ REGISTER(VolumeCloud)
 
 void VolumeCloud::Create()
 {
-    initializeOpenGLFunctions();
     program = CResourceInfo::Inst()->CreateProgram("volumecloud.vsh","volumecloud.fsh","VolumeCloud");
 }
 
 void VolumeCloud::SecondRender()
 {
+    QOpenGLFunctions* gl = QOpenGLContext::currentContext()->functions();
+
     int screenX = RenderCommon::Inst()->GetScreenX();
     int screenY = RenderCommon::Inst()->GetScreenY();
     auto gFrameBuffer = CResourceInfo::Inst()->CreateFrameBuffer("GBuffer", screenX, screenY, 3);
@@ -40,11 +41,11 @@ void VolumeCloud::SecondRender()
     program->setUniformValue("mixRatio",mixRatio);
     program->setUniformValue("brightness",brightness);
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, gFrameBuffer->vecTexId[EGT_Color]);
+    gl->glActiveTexture(GL_TEXTURE0);
+    gl->glBindTexture(GL_TEXTURE_2D, gFrameBuffer->vecTexId[EGT_Color]);
     program->setUniformValue("color", 0);
 
-    glActiveTexture(GL_TEXTURE1);
+    gl->glActiveTexture(GL_TEXTURE1);
     auto perlin = CResourceInfo::Inst()->CreateTexture("T_Perlin_Noise_M.TGA");
     perlin->bind();
     program->setUniformValue("perlinNoise", 1);

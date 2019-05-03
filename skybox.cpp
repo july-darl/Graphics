@@ -7,15 +7,15 @@ REGISTER(SkyBox)
 
 void SkyBox::Create()
 {
-    initializeOpenGLFunctions();
-
     program = CResourceInfo::Inst()->CreateProgram("skybox.vsh","skybox.fsh","skybox");
 }
 
 void SkyBox::Render()
 {
-    glDisable(GL_CULL_FACE);
-    glDepthFunc(GL_LEQUAL);
+    QOpenGLFunctions* gl = QOpenGLContext::currentContext()->functions();
+
+    gl->glDisable(GL_CULL_FACE);
+    gl->glDepthFunc(GL_LEQUAL);
 
     program->bind();
 
@@ -24,13 +24,13 @@ void SkyBox::Render()
     program->setUniformValue("ViewMatrix", Camera::Inst()->GetViewMatrix());
     program->setUniformValue("zFar", RenderCommon::Inst()->GetZFarPlane());
 
-    glActiveTexture(GL_TEXTURE0);
+    gl->glActiveTexture(GL_TEXTURE0);
 
-    glBindTexture(GL_TEXTURE_CUBE_MAP, RenderCommon::Inst()->GetHDREnvCubemap());
+    gl->glBindTexture(GL_TEXTURE_CUBE_MAP, RenderCommon::Inst()->GetHDREnvCubemap());
     program->setUniformValue("envCubemap", 0);
 
     RenderCommon::Inst()->GetGeometryEngine()->drawCube(program);
 
-    glDepthFunc(GL_LESS);
-    glEnable(GL_CULL_FACE);
+    gl->glDepthFunc(GL_LESS);
+    gl->glEnable(GL_CULL_FACE);
 }
