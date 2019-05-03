@@ -7,9 +7,9 @@ CBaseObjectWidget::CBaseObjectWidget()
 
     SetLabel("位置");
 
-    posXInit("x",-10.0f,20.0f);
-    posYInit("y",-10.0f,20.0f);
-    posZInit("z",-10.0f,20.0f);
+    posXInit("x",-10.0f,10.0f);
+    posYInit("y",-10.0f,10.0f);
+    posZInit("z",-10.0f,10.0f);
 
     SetLabel("旋转");
 

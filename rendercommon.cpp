@@ -23,8 +23,8 @@ RenderCommon::RenderCommon()
 
     UpdateLightMatrix();
   //  CreateCubemap();
-  //  CreateHDRCubemap("test8_Ref.hdr");
-    CreateHDRCubemap("./BasketballCourt_3k.hdr");
+    CreateHDRCubemap("test8_Ref.hdr");
+  //  CreateHDRCubemap("./BasketballCourt_3k.hdr");
 //    CreateHDRCubemap("./Ice_Lake_Ref.hdr");
 
 }
@@ -378,4 +378,15 @@ void RenderCommon::UpdateLightMatrix()
     lightMatrix.setRow(2, {N.x(), N.y(), N.z(), -QVector3D::dotProduct(N, pos)}); // z
     lightMatrix.setRow(3, {0, 0, 0, 1});
 
+}
+
+#include <QDateTime>
+float RenderCommon::GetTime()
+{
+    qint64 second = QDateTime::currentMSecsSinceEpoch();
+
+    static qint64 startTime = second;
+
+    second = second - startTime;
+    return static_cast<float>(second) / 2000;
 }

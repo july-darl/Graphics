@@ -40,7 +40,7 @@ public:
     virtual void         SecondRender() { }
     virtual void         LateRender() { }
     virtual void         Draw();
-
+    virtual void         Draw(QOpenGLShaderProgram*);
     virtual              ~Object() { }
 };
 

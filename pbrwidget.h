@@ -19,6 +19,9 @@ private:
     DECLARE_IMAGE(albedoTex)
     DECLARE_IMAGE(normalTex)
     DECLARE_IMAGE(pbrTex)
+    DECLARE_CHECKBOX(bBloom)
+    DECLARE_CHECKBOX(bSSR)
+    DECLARE_CHECKBOX(bFire)
 public:
     void OnSelectedObject(Object* obj);
 };

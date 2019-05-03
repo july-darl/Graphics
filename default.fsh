@@ -11,6 +11,7 @@ uniform sampler2D brdfLUT;
 uniform sampler2D Snow_D;
 uniform sampler2D Snow_N;
 uniform sampler2D SnowDepth;
+uniform sampler2D Bloom;
 uniform samplerCube prefilterMap;
 uniform samplerCube irradianceMap;
 uniform samplerCube Cloud3DNoiseTextureA;
@@ -108,7 +109,7 @@ float GetShadow(vec4 worldPos)
         for(int j = -1; j <= 1; j++)
         {
             float fDistanceMap = texture2D(ShadowMap, uv + vec2(1.0 * i / ScreenX, 1.0 * j / ScreenY)).x;
-            fShadow += fDistance - offset > fDistanceMap ? 0.6 : 1.0;
+            fShadow += fDistance - offset > fDistanceMap ? 0.8 : 1.0;
         }
     }
     fShadow /= 9.0;
@@ -229,9 +230,14 @@ float fracNoise(vec3 pos, int octave)
 }
 
 
-bool IsIdEqual(float id, float data)
+bool UseSSR(float id)
 {
-    return abs(id * 100 - data) < 0.1;
+   return abs(100 * id - 1) < 0.01;
+}
+
+bool UseFire(float id)
+{
+    return abs(100 * id - 2) < 0.01;
 }
 
 float distance(vec3 p)
@@ -257,6 +263,29 @@ float gauss[] = float[]
     0.00000067, 0.00002292, 0.00019117, 0.00038771, 0.00019117, 0.00002292, 0.00000067
 );
 
+vec2 g_v2TwelveKernelBase[] =
+{
+    {1.0,0.0},{0.5,0.866},{-0.5,0.866},
+    {-1.0,0.0},{-0.5,-0.866},{0.5,-0.866},
+    {1.5,0.866},{0, 1.732},{-1.5,0.866},
+    {-1.5,0.866},{0,-1.732},{1.5,-0.866},
+};
+
+vec3 GetBlurColor(vec2 uv)
+{
+    int kernelNum = 12;
+    vec4 v4Original = texture2D(Bloom, uv);
+
+    vec2 v4ScreenSize = vec2(ScreenX,ScreenY) / 5;
+    vec3 v3Blurred = vec3(0, 0, 0);
+    for(int i = 0; i < kernelNum; i++)
+    {
+       vec2 v2Offset = vec2(g_v2TwelveKernelBase[i].x / v4ScreenSize.x, g_v2TwelveKernelBase[i].y / v4ScreenSize.y);
+       vec4 v4Current = texture2D(Bloom, uv + v2Offset);
+       v3Blurred += mix(v4Original.rgb, v4Current.rgb, v4Original.a);
+   }
+   return v3Blurred / kernelNum;
+}
 
 vec3 GetGaussColor(vec2 uv)
 {
@@ -278,6 +307,28 @@ vec3 GetGaussColor(vec2 uv)
 
     return finalColor;
 }
+
+vec3 GetBloomColor(vec2 uv)
+{
+    const int size = 7;
+
+    vec3 finalColor = vec3(0,0,0);
+    vec3 max = vec3(0,0,0);
+    int idx = 0;
+    for(int i = -3;i <= 3;i++)
+    {
+        for(int j = -3; j <= 3;j++)
+        {
+            vec2 offset_uv = uv + vec2(5.0 * i /ScreenX, 5.0 * j /ScreenY);
+            vec3 color = texture2D(Bloom, offset_uv).xyz;
+            float weight = gauss[idx++];
+            finalColor = finalColor + weight * color;
+        }
+    }
+
+    return finalColor;
+}
+
 
 vec3 UnpackNormal(vec3 n)
 {
@@ -304,29 +355,107 @@ vec3 ComputeWorldPos(float depth)
     vec4 ret = Inverse_ViewMatrix * pos;
     return ret.xyz / ret.w;
 }
+float value_fractal(vec3 p)
+{
+    float f = 0.0;
+    p = p * 4.0;
+    f += 1.0000 * noise(p); p = 2.0 * p;
+    f += 0.5000 * noise(p); p = 2.0 * p;
+    f += 0.2500 * noise(p); p = 2.0 * p;
+    f += 0.1250 * noise(p); p = 2.0 * p;
+    f += 0.0625 * noise(p); p = 2.0 * p;
+
+   return f/2;
+}
+
+float worley_fractal(vec3 p)
+{
+    float f = 0.0;
+    p = p * 4.0;
+    f += 1.0000 * worley(p); p = 2.0 * p;
+    f += 0.5000 * worley(p); p = 2.0 * p;
+
+
+   return f/2;
+}
 
 float GetHeightDensity(float height)
 {
-    if(height>300) return 0;
-    else if(height > 200) 1;
-    return height/200;
+    if(height > 200) return 1;
+    else if(height > 120) return (height-120)/80;
+    return 0;
 }
 
-float GetLocalDensity(vec3 pos)
+float GetCloudBaseShape(vec3 pos)
 {
-    vec3 t = pos / 50;
-    t.x += fTime;
-    float c1 = fracNoise(t, 3);
+    pos = pos/200;
+    pos.x += fTime/3;
+    float c1 = value_fractal(pos);
+    float c2 = worley(pos);
+
+    c2 = 1 - c2;
+
+    float shape = mix(c1,c2,0.5);
+    shape = clamp((shape - 0.3) / (1 - 0.3),0,1) ;
+    return shape;
+}
+
+float GetCloudDetailShape(vec3 pos)
+{
+    pos = pos/10;
+    pos.x += fTime/3;
+
+    float c = worley(pos);
+
+    c = 1 - c;
+   // c = clamp((c - thickness) / (1 - thickness),0,1) ;
+    return c;
+}
+
+
+float GetCloudThickness(vec3 pos)
+{
+    vec3 t = vec3(pos.x, 0.0, pos.z)/50;
+
+    t.x += fTime/3;
+
+    float c1 = value_fractal(t);
     float c2 = worley(t);
 
     c2 = 1 - c2;
 
-    float sampled_density = mix(c1,c2,0.7);
+    float thick = mix(c1,c2,0.7);
+    thick = clamp((thick - 0.6) / (1 - 0.6),0,1) ;
 
-    sampled_density = clamp((sampled_density - 0.7) / (1 - 0.7),0,1) ;
-    sampled_density *= GetHeightDensity(pos.y);
+    return thick;
+}
 
-    return sampled_density;
+float GetCloudDensity(vec3 pos)
+{
+    float thick = GetCloudThickness(pos);
+    float base_density = GetCloudBaseShape(pos);
+    float detail_density = GetCloudDetailShape(pos);
+    return thick * base_density * 1;
+}
+
+vec3 GetLocalLight(vec3 pos, float density, vec3 sunCol)
+{
+    sunCol *= 200.0f;
+   float dist = abs(600 - pos.y);			//到光源的距离
+   vec3 dir = vec3(0.0, 1.0, 0.0);
+   vec3 light = sunCol/ dist;		//计算当地光
+
+   float shadow = 1.0f;
+   float shadowNum = 1.0;
+   float step = 1 / shadowNum;
+
+   for (float i = 0.5; i < shadowNum; i+=2)
+   {
+        float density = GetCloudDensity(pos+dir*i*step);
+        shadow *= exp(-step*density*2);
+   }
+   light *= shadow;
+   return light;
 }
 
 void main(void)
@@ -369,8 +498,7 @@ void main(void)
    //    }
    //    I = clamp(I,0,1);
    //}
-
-    if(result.x != 1 || (result.x == 1 && result.y == 0.5 && result.z == 0.5))
+   if(result.xy != vec2(1,1))
     {
         vec3 normal = normalize(result.xyz * 2 - 1);
         float depth = result.w;
@@ -404,7 +532,7 @@ void main(void)
 
         vec3 irradiance = textureCube(irradianceMap, normal).rgb;
         vec3 reflectColor = vec3(0);
-        if(IsIdEqual(id, 3) )
+        if(UseSSR(id) )
         {
             //albedo = mix(albedo,textureCube(CubeMap, reflectDir).xyz,0.2);
             float step = 0.2;
@@ -429,7 +557,7 @@ void main(void)
                         if(abs(d - depth) < eps)
                         {
                             float newId = texture2D(Param, uv).w;
-                            if(!IsIdEqual(newId, 3))
+                            if(!UseSSR(newId))
                             {
                                 reflectColor = texture2D(Color, uv).xyz;
                             }
@@ -459,7 +587,7 @@ void main(void)
                             if(abs(d - depth) < 0.3 * eps)
                             {
                                 float newId = texture2D(Param, uv).w;
-                                if(!IsIdEqual(newId, 3))
+                                if(!UseSSR(newId))
                                 {
                                     reflectColor = texture2D(Color, uv).xyz;
                                 }
@@ -559,57 +687,68 @@ void main(void)
 
         }
 
+        vec3 gauss_color = GetBloomColor(v_texcoord);
         color = color * fShadow;
-        gl_FragColor = vec4(color + I * sun_color, 1.0);
-        // gl_FragColor = vec4(depth,depth,depth, 1);
-
+        gl_FragColor = vec4(color + I * sun_color + gauss_color, 1.0);
+    }
+    else if(result ==vec4(1,1,1,1))
+    {
+       vec3 gauss_color = GetBloomColor(v_texcoord);
+        gl_FragColor = vec4(texture2D(Color, v_texcoord).xyz  + gauss_color, 1);
     }
     else
     {
-        // texture2D(Color, v_texcoord).xyz
-        gl_FragColor = vec4(texture2D(Color, v_texcoord).xyz , 1);
-      //  gl_FragColor = vec4(sky_color + I * sun_color, 1);
+        float density = 0.0;
+
+        vec3 beginPos;
+        beginPos.x = (result.z * 2 - 1);
+        beginPos.z = (result.w * 2 - 1);
+
+        beginPos.x *= 400;
+        beginPos.z *= 400;
+        beginPos.y = 400;
+
+        vec3 cloud_color = vec3(0);
+
+        float stepLength = 1;
+        vec3 step = 20 * normalize(beginPos - cameraPos);
+
+        int stepNum = 10;
+        float transmittance = 1.0;
+        vec3 light_color;
+        for(int i = 0; i < stepNum; i++)
+        {
+            vec3 pos = beginPos + i * step;
+
+
+            float sampled_density = GetCloudDensity(pos);//* GetHeightDensity(pos.y);
+            density += sampled_density;
+
+            vec3 lightDir = pos - vec3(0,400,-100);
+            vec3 viewDir = pos - cameraPos;
+            float cos_angle = dot(normalize(lightDir), normalize(viewDir));
+            float inG = 0.2;
+            float hg = ((1.0 - inG * inG) / pow((1.0 + inG * inG - 2.0 * inG * cos_angle), 3.0/2.0))
+             / 4.0 * 3.1415;
+
+            float powder = (1.0f - exp(-sampled_density*1));
+            vec3 localCol = GetLocalLight(pos,sampled_density,vec3(1,0.8,0.9)) * powder;
+          //  vec3 localCol = vec3(1,1,1) * (1.0f - exp(-sampled_density*2));
+            cloud_color += (localCol * hg) * transmittance ;
+            transmittance *= exp(-2*sampled_density);
+          //  light_color += vec3(1,0,0) * hg * beers;
+            //cloud_color +=  vec3(1,1,1)* clamp(2 * beers * powder,0,1);//+ sun_color* hg * powder   ;// + vec3(1,0,0) * hg * beers;
+        }
+
+        cloud_color += sky_color * transmittance;
+
+        vec3 fogColor = vec3(1.0, 1.00, 0.94);
+        float factor = clamp(0, 1, (distance(cameraPos, beginPos))/ 1200.0);
+        cloud_color = mix(cloud_color, fogColor, factor);
+
+        density = density/(density + 1);
+        vec3 gauss_color = GetBloomColor(v_texcoord);
+        gl_FragColor = vec4(mix(sky_color,cloud_color,density) + gauss_color,1);
+
     }
-//else
-//{
-//    float density = 0.0;
-//
-//    vec3 beginPos;
-//    beginPos.x = result.t;
-//    beginPos.y = result.z;
-//    beginPos.z = result.w;
-//    beginPos = 2 * beginPos - 1;
-//    beginPos *= 200;
-//
-//    vec3 step = 1.0 * normalize(beginPos - cameraPos);
-//    bool bInit = false;
-//    vec3 cloud_color = vec3(0);
-//
-//    int stepNum = 16;
-//    for(int i = 0; i < stepNum; i++)
-//    {
-//        vec3 pos = beginPos + i * step;
-//
-//
-//        float sampled_density = GetLocalDensity(pos);
-//        density += sampled_density / stepNum;
-//
-//
-//     vec3 lightDir = pos - vec3(5,230,5);
-//     vec3 viewDir = pos - cameraPos;
-//     float cos_angle = dot(normalize(lightDir), normalize(-viewDir));
-//     float inG = 0.3;
-//     float hg = ((1.0 - inG * inG) / pow((1.0 + inG * inG - 2.0 * inG * cos_angle), 3.0/2.0))
-//         / 4.0 * 3.1415;
-//
-//        float powder = (1 - exp(-2 * density));
-//        float beers = exp(-density);
-//        cloud_color += vec3(1,1,1) * hg * 2 * beers * powder;
-//    }
-//
-//    cloud_color = cloud_color / (0.5 + cloud_color);
-//    if(density < 0.7) density = density/(density + 0.1) * 0.7;
-//
-//    gl_FragColor = vec4(mix(sky_color,cloud_color,density),1);
-//}
 }

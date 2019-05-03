@@ -13,7 +13,10 @@ CPBRWidget::CPBRWidget()
 
     albedoTexInit("albedo");
     normalTexInit("法线");
-    pbrTexInit("PBR");
+    pbrTexInit("遮罩");
+    bBloomInit("开启bloom");
+    bSSRInit("开启SSR");
+    bFireInit("OnFire");
 
     vlayout->addStretch(static_cast<int>((height() * 0.8)));
 }
@@ -31,5 +34,9 @@ void CPBRWidget::OnSelectedObject(Object* obj)
 
     albedoTexSetData(&p->albedo, &p->albedoImg);
     normalTexSetData(&p->normal, &p->normalImg);
-    pbrTexSetData(&p->pbrTex, &p->pbrImg);
+    pbrTexSetData(&p->maskTex, &p->maskImg);
+
+    bBloomSetData(&p->bBloom);
+    bSSRSetData(&p->bSSR);
+    bFireSetData(&p->bFire);
 }

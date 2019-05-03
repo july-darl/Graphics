@@ -35,6 +35,25 @@ void Object::Draw()
     }
 }
 
+void Object::Draw(QOpenGLShaderProgram* p)
+{
+   // qDebug() << shape;
+    switch(shape)
+    {
+    case SHA_Cube:
+        RenderCommon::Inst()->GetGeometryEngine()->drawCube(p);
+        break;
+    case SHA_Sphere:
+        RenderCommon::Inst()->GetGeometryEngine()->drawSphere(p);
+        break;
+    case SHA_Plane:
+        RenderCommon::Inst()->GetGeometryEngine()->drawPlane(p);
+        break;
+    default:
+        RenderCommon::Inst()->GetGeometryEngine()->drawPlane(p);
+    }
+}
+
 void Object::GenShadowMap()
 {
     QOpenGLShaderProgram* shadowMapProgram = CResourceInfo::Inst()->GetProgram("ShadowMap");
@@ -43,7 +62,7 @@ void Object::GenShadowMap()
     shadowMapProgram->setUniformValue("zFar", RenderCommon::Inst()->GetZFarPlane());
     shadowMapProgram->setUniformValue("ModelMatrix",  modelMatrix);
     shadowMapProgram->setUniformValue("IT_ModelMatrix",  IT_modelMatrix);
-    Draw();
+    Draw(shadowMapProgram);
 }
 
 void Object::GenSnowDepth()
@@ -274,7 +293,6 @@ void ObjectInfo::Render()
 
     // 写入g-buffer
     auto gFrameBuffer = CResourceInfo::Inst()->CreateFrameBuffer("GBuffer", screenX, screenY, 3);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, gFrameBuffer->frameBuffer);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -283,14 +301,17 @@ void ObjectInfo::Render()
         vecObj[i]->Render();
         vecObj[i]->Draw();
     }
-
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+     auto bloomBuffer = CResourceInfo::Inst()->CreateFrameBuffer("Bloom",screenX/2,screenY/2);
+    glBindFramebuffer(GL_FRAMEBUFFER, bloomBuffer->frameBuffer);
+    glClearColor(0,0,0,1);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     // 二次渲染
     for(size_t i = 0;i < vecObj.size(); i++)
     {
         vecObj[i]->SecondRender();
-        vecObj[i]->Draw();
+        //vecObj[i]->Draw();
     }
-
 
     // 延迟渲染部分
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -306,13 +327,7 @@ void ObjectInfo::Render()
 
 void ObjectInfo::DelayRender()
 {
-    qint64 second = QDateTime::currentMSecsSinceEpoch();
-
-    static qint64 startTime = second;
-
-    second = second - startTime;
-    float times = (float)second / 2000;
-
+    float times = RenderCommon::Inst()->GetTime();
     int screenX = RenderCommon::Inst()->GetScreenX();
     int screenY = RenderCommon::Inst()->GetScreenY();
 
@@ -320,6 +335,7 @@ void ObjectInfo::DelayRender()
     auto shadowMapFrameBuffer = CResourceInfo::Inst()->CreateFrameBuffer("ShadowMap", screenX, screenY);
     auto snowMapFrameBuffer = CResourceInfo::Inst()->CreateFrameBuffer("SnowMap", screenX, screenY);
     auto gFrameBuffer = CResourceInfo::Inst()->CreateFrameBuffer("GBuffer", screenX, screenY, 3);
+     auto bloomBuffer = CResourceInfo::Inst()->CreateFrameBuffer("Bloom", screenX/2, screenY/2);
 
     delayProgram->bind();
 
@@ -367,8 +383,8 @@ void ObjectInfo::DelayRender()
     delayProgram->setUniformValue("SnowDepth",9);
 
     glActiveTexture(GL_TEXTURE10);
-    CResourceInfo::Inst()->CreateTexture("cloudmap.png")->bind();
-    delayProgram->setUniformValue("CloudMap",10);
+     glBindTexture(GL_TEXTURE_2D, bloomBuffer->vecTexId[0]);
+    delayProgram->setUniformValue("Bloom",10);
 
     delayProgram->setUniformValue("ProjectMatrix",RenderCommon::Inst()->GetProjectMatrix());
     delayProgram->setUniformValue("ViewMatrix", Camera::Inst()->GetViewMatrix());

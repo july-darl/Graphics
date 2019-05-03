@@ -15,16 +15,21 @@ public:
 
     GLuint      albedo = 0;
     GLuint      normal = 0;
-    GLuint      pbrTex = 0;
+    GLuint      maskTex = 0;
 
     QImage      albedoImg;
     QImage      normalImg;
-    QImage      pbrImg;
+    QImage      maskImg;
+
+    bool        bFire = false;
+    bool        bBloom = false;
+    bool        bSSR = false;
 
     Vector3f    color    = Vector3f(1,1,1);
     void        SetAlbedo(const QString& path);
     void        Create() override;
     void        Render() override;
+    void        SecondRender() override;
 };
 
 #endif // PHONG_H

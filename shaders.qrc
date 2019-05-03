@@ -34,5 +34,9 @@
         <file>colorvshader.vsh</file>
         <file>volumecloud.vsh</file>
         <file>volumecloud.fsh</file>
+        <file>bloom.vsh</file>
+        <file>bloom.fsh</file>
+        <file>fire.tcsh</file>
+        <file>fire.tesh</file>
     </qresource>
 </RCC>

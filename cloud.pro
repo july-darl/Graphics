@@ -17,7 +17,6 @@ SOURCES += main.cpp \
     pbrwidget.cpp \
     outlinewidget.cpp \
     propertywidget.cpp \
-    rendercomponent.cpp \
     environmentwidget.cpp \
     skybox.cpp \
     particlesystem.cpp \
@@ -47,7 +46,6 @@ HEADERS += \
     pbrwidget.h \
     outlinewidget.h \
     propertywidget.h \
-    rendercomponent.h \
     environmentwidget.h \
     stb_image.h \
     skybox.h \

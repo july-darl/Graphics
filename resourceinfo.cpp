@@ -1,4 +1,4 @@
-#include "resourceInfo.h"
+#include "resourceinfo.h"
 #include "rendercommon.h"
 #include <QImage>
 #include <QOpenGLFunctions>
@@ -53,6 +53,30 @@ QOpenGLTexture* CResourceInfo::CreateTexture(string name, QOpenGLTexture::WrapMo
     }
 }
 
+QOpenGLShaderProgram* CResourceInfo::CreateTessProgram(string tcShaderName, string teShaderName,string vShaderName, string fShaderName, string name)
+{
+    if(mapProgram.find(name) != mapProgram.end())
+    {
+        return mapProgram[name];
+    }
+    else
+    {
+        mapProgram[name] = new QOpenGLShaderProgram();
+        QOpenGLShader* tcShader = CreateShader(tcShaderName,QOpenGLShader::TessellationControl);
+        QOpenGLShader* teShader = CreateShader(teShaderName,QOpenGLShader::TessellationEvaluation);
+        QOpenGLShader* fShader = CreateShader(fShaderName,QOpenGLShader::Fragment);
+        QOpenGLShader* vShader = CreateShader(vShaderName,QOpenGLShader::Vertex);
+
+        mapProgram[name]->addShader(tcShader);
+        mapProgram[name]->addShader(teShader);
+        mapProgram[name]->addShader(fShader);
+        mapProgram[name]->addShader(vShader);
+        mapProgram[name]->link();
+
+        return mapProgram[name];
+    }
+}
+
 QOpenGLShaderProgram* CResourceInfo::CreateProgram(string vShaderName, string fShaderName, string name)
 {
     if(mapProgram.find(name) != mapProgram.end())
@@ -62,8 +86,8 @@ QOpenGLShaderProgram* CResourceInfo::CreateProgram(string vShaderName, string fS
     else
     {
         mapProgram[name] = new QOpenGLShaderProgram();
-        QOpenGLShader* vShader = CResourceInfo::Inst()->CreateShader(vShaderName,QOpenGLShader::Vertex);
-        QOpenGLShader* fShader = CResourceInfo::Inst()->CreateShader(fShaderName,QOpenGLShader::Fragment);
+        QOpenGLShader* vShader = CreateShader(vShaderName,QOpenGLShader::Vertex);
+        QOpenGLShader* fShader = CreateShader(fShaderName,QOpenGLShader::Fragment);
 
         mapProgram[name]->addShader(vShader);
         mapProgram[name]->addShader(fShader);
@@ -76,8 +100,8 @@ QOpenGLShaderProgram* CResourceInfo::CreateProgram(string vShaderName, string fS
 QOpenGLShaderProgram* CResourceInfo::CreateProgram(string vShaderName, string fShaderName)
 {
     auto program = new QOpenGLShaderProgram();
-    QOpenGLShader* vShader = CResourceInfo::Inst()->CreateShader(vShaderName,QOpenGLShader::Vertex);
-    QOpenGLShader* fShader = CResourceInfo::Inst()->CreateShader(fShaderName,QOpenGLShader::Fragment);
+    QOpenGLShader* vShader = CreateShader(vShaderName,QOpenGLShader::Vertex);
+    QOpenGLShader* fShader = CreateShader(fShaderName,QOpenGLShader::Fragment);
 
     program->addShader(vShader);
     program->addShader(fShader);

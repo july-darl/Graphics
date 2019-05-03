@@ -24,7 +24,7 @@ void VolumeCloud::SecondRender()
 
     float times;
     second = second - startTime;
-    times = (float)second / 2000;
+    times = static_cast<float>(second) / 2000;
 
 
     program->bind();

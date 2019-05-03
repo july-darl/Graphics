@@ -135,6 +135,8 @@ public:
     void UpdateEnvironment();
     bool IsSnow() {return bSnow;}
     void SetSnow(bool b) { bSnow = b;}
+
+    float GetTime();
 };
 
 
