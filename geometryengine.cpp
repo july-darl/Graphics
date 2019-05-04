@@ -10,8 +10,6 @@ GeometryEngine::GeometryEngine()
       planeIndexBuf(QOpenGLBuffer::IndexBuffer),
       sphereIndexBuf(QOpenGLBuffer::IndexBuffer)
 {
-    initializeOpenGLFunctions();
-
     cubeArrayBuf.create();
     cubeIndexBuf.create();
 
@@ -171,37 +169,6 @@ void GeometryEngine::initCubeGeometry()
         {QVector3D( 1.0f,  1.0f, -1.0f), QVector3D(0,0,0),QVector3D(0,0,0) ,QVector2D(1,1) }, // v23
     };
 
-/*
-QVector2D(0.0f, 0.0f),
-QVector2D(0.33f, 0.0f),
-QVector2D(0.0f, 0.5f),
-QVector2D(0.33f, 0.5f),
-
-QVector2D( 0.0f, 0.5f),
-QVector2D(0.33f, 0.5f),
-QVector2D(0.0f, 1.0f),
-QVector2D(0.33f, 1.0f),
-
- QVector2D(0.66f, 0.5f)
- QVector2D(1.0f, 0.5f),
- QVector2D(0.66f, 1.0f)
- QVector2D(1.0f, 1.0f),
-
- QVector2D(0.66f, 0.0f)
- QVector2D(1.0f, 0.0f),
- QVector2D(0.66f, 0.5f)
- QVector2D(1.0f, 0.5f),
-
-QVector2D(0.33f, 0.0f),
-QVector2D(0.66f, 0.0f),
-QVector2D(0.33f, 0.5f),
-QVector2D(0.66f, 0.5f),
-
-QVector2D(0.33f, 0.5f),
-QVector2D(0.66f, 0.5f),
-QVector2D(0.33f, 1.0f),
-QVector2D(0.66f, 1.0f),
-*/
     GLushort Indices[] = {
          0,  1,  3, 3, 2, 0,
          4,  5,  7, 7, 6, 4,
@@ -227,11 +194,13 @@ QVector2D(0.66f, 1.0f),
 
 void GeometryEngine::drawCube(QOpenGLShaderProgram *program, bool bTess)
 {
+    auto gl = QOpenGLContext::currentContext()->extraFunctions();
+
     cubeArrayBuf.bind();
     cubeIndexBuf.bind();
 
     if(bTess)
-        glPatchParameteri(GL_PATCH_VERTICES, 4);
+        gl->glPatchParameteri(GL_PATCH_VERTICES, 3);
 
     int offset = 0;
 
@@ -257,18 +226,28 @@ void GeometryEngine::drawCube(QOpenGLShaderProgram *program, bool bTess)
     program->enableAttributeArray(texcoordLocation);
     program->setAttributeBuffer(texcoordLocation, GL_FLOAT, offset, 2, sizeof(VertexData));
 
-    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, nullptr);
+    if(bTess)
+    {
+        gl->glPatchParameteri(GL_PATCH_VERTICES, 4);
+        gl->glDrawElements(GL_PATCHES, 36, GL_UNSIGNED_SHORT, nullptr);
+    }
+    else
+    {
+        gl->glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, nullptr);
+    }
 }
 
 void GeometryEngine::drawPlane(QOpenGLShaderProgram *program, bool bTess)
 {
+    auto gl = QOpenGLContext::currentContext()->extraFunctions();
+
     planeArrayBuf.bind();
     planeIndexBuf.bind();
 
     int offset = 0;
 
     if(bTess)
-        glPatchParameteri(GL_PATCH_VERTICES, 4);
+        gl->glPatchParameteri(GL_PATCH_VERTICES, 4);
 
     int vertexLocation = program->attributeLocation("a_position");
     program->enableAttributeArray(vertexLocation);
@@ -292,16 +271,26 @@ void GeometryEngine::drawPlane(QOpenGLShaderProgram *program, bool bTess)
     program->enableAttributeArray(texcoordLocation);
     program->setAttributeBuffer(texcoordLocation, GL_FLOAT, offset, 2, sizeof(VertexData));
 
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, nullptr);
+
+    if(bTess)
+    {
+        gl->glPatchParameteri(GL_PATCH_VERTICES, 4);
+        gl->glDrawElements(GL_PATCHES, 6, GL_UNSIGNED_SHORT, nullptr);
+    }
+    else
+    {
+        gl->glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, nullptr);
+    }
+
 }
 
 void GeometryEngine::drawSphere(QOpenGLShaderProgram* program, bool bTess)
 {
+    auto gl = QOpenGLContext::currentContext()->extraFunctions();
+
     sphereArrayBuf.bind();
     sphereIndexBuf.bind();
 
-    if(bTess)
-        glPatchParameteri(GL_PATCH_VERTICES, 4);
 
     int offset = 0;
     int vertexLocation = program->attributeLocation("a_position");
@@ -326,8 +315,15 @@ void GeometryEngine::drawSphere(QOpenGLShaderProgram* program, bool bTess)
     program->enableAttributeArray(texcoordLocation);
     program->setAttributeBuffer(texcoordLocation, GL_FLOAT, offset, 2, sizeof(VertexData));
 
-    glDrawElements(GL_TRIANGLES, 54000, GL_UNSIGNED_SHORT, nullptr);
-  //   glDrawArrays(GL_TRIANGLES, 0, 9600);
+    if(bTess)
+    {
+        gl->glPatchParameteri(GL_PATCH_VERTICES, 4);
+        gl->glDrawElements(GL_PATCHES, 54000, GL_UNSIGNED_SHORT, nullptr);
+    }
+    else
+    {
+        gl->glDrawElements(GL_TRIANGLES, 54000, GL_UNSIGNED_SHORT, nullptr);
+    }
 }
 
 

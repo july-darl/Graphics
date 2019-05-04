@@ -13,6 +13,9 @@ class CResourceInfo
 private:
     map<string, QOpenGLShader*>         mapVShader;
     map<string, QOpenGLShader*>         mapFShader;
+    map<string, QOpenGLShader*>         mapTCShader;
+    map<string, QOpenGLShader*>         mapTEShader;
+
     map<string, QOpenGLTexture*>        mapTexture;
     map<string, QOpenGLShaderProgram*>  mapProgram;
     map<string, STextureBuffer*>        mapTextureBuffer;

@@ -33,6 +33,32 @@ QOpenGLShader* CResourceInfo::CreateShader(string name, QOpenGLShader::ShaderTyp
             return mapFShader[name];
         }
     }
+    else if(type == QOpenGLShader::TessellationControl)
+    {
+        if(mapTCShader.find(name) != mapTCShader.end())
+        {
+            return mapTCShader[name];
+        }
+        else
+        {
+            mapTCShader[name] = new QOpenGLShader(QOpenGLShader::TessellationControl);
+            mapTCShader[name]->compileSourceFile(QString::fromStdString(":/" + name));
+            return mapTCShader[name];
+        }
+    }
+    else if(type == QOpenGLShader::TessellationEvaluation)
+    {
+        if(mapTEShader.find(name) != mapTEShader.end())
+        {
+            return mapTEShader[name];
+        }
+        else
+        {
+            mapTEShader[name] = new QOpenGLShader(QOpenGLShader::TessellationEvaluation);
+            mapTEShader[name]->compileSourceFile(QString::fromStdString(":/" + name));
+            return mapTEShader[name];
+        }
+    }
     return nullptr;
 }
 
@@ -61,14 +87,17 @@ QOpenGLShaderProgram* CResourceInfo::CreateTessProgram(string tcShaderName, stri
     }
     else
     {
+        qDebug() << QString::fromStdString(name) ;
         mapProgram[name] = new QOpenGLShaderProgram();
         QOpenGLShader* tcShader = CreateShader(tcShaderName,QOpenGLShader::TessellationControl);
         QOpenGLShader* teShader = CreateShader(teShaderName,QOpenGLShader::TessellationEvaluation);
         QOpenGLShader* fShader = CreateShader(fShaderName,QOpenGLShader::Fragment);
         QOpenGLShader* vShader = CreateShader(vShaderName,QOpenGLShader::Vertex);
 
-        mapProgram[name]->addShader(tcShader);
-        mapProgram[name]->addShader(teShader);
+        if(!mapProgram[name]->addShader(tcShader))
+            qDebug() << "err";
+        if(!mapProgram[name]->addShader(teShader))
+            qDebug() << "err";
         mapProgram[name]->addShader(fShader);
         mapProgram[name]->addShader(vShader);
         mapProgram[name]->link();

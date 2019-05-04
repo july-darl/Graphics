@@ -13,7 +13,7 @@ struct VertexData
     QVector2D texcoord;
 };
 
-class GeometryEngine : protected QOpenGLExtraFunctions
+class GeometryEngine
 {
 public:
     GeometryEngine();
