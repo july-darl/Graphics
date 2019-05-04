@@ -4,9 +4,11 @@ uniform mat4 ModelMatrix;
 uniform mat4 ViewMatrix;
 uniform mat4 ProjectMatrix;
 uniform bool bFixZ;
-attribute vec4 a_position;
-attribute vec2 a_texcoord;
-varying vec2 v_texcoord;
+
+in vec4 a_position;
+in vec2 a_texcoord;
+out vec2 v_texcoord;
+
 void main(void)
 {
     gl_Position = ModelMatrix * a_position;

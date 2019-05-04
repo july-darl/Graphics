@@ -1,6 +1,6 @@
 #version 450 core
 #extension GL_NV_shadow_samplers_cube : enable
-varying vec3 localPos;
+in vec3 localPos;
 
 uniform samplerCube environmentMap;
 uniform float roughness;
@@ -11,6 +11,7 @@ float RadicalInverse_VdC(uint bits);
 vec2 Hammersley(uint i, uint N);
 vec3 ImportanceSampleGGX(vec2 Xi, vec3 N, float roughness);
 
+out vec4 fragColor;
 void main()
 {
     vec3 N = normalize(localPos);
@@ -30,13 +31,13 @@ void main()
         if(NdotL > 0.0)
         {
 
-            prefilteredColor += textureCube(environmentMap, L).rgb * NdotL;
+            prefilteredColor += texture(environmentMap, L).rgb * NdotL;
             totalWeight += NdotL;
         }
     }
     prefilteredColor = prefilteredColor / totalWeight;
 
-    gl_FragColor = vec4(prefilteredColor, 1.0);
+    fragColor = vec4(prefilteredColor, 1.0);
 }
 
 float RadicalInverse_VdC(uint bits)

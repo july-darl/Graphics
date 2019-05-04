@@ -192,11 +192,15 @@ void COpenGLWidget::resizeGL(int w, int h)
 {
     RenderCommon::Inst()->UpdateScreenXY(w, h);
 }
-
+#include "resourceinfo.h"
 void COpenGLWidget::paintGL()
 {
     glClearColor(0,0,0,1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+   // auto p = CResourceInfo::Inst()->CreateTessProgram("test.tcsh","test.tesh","test.vsh","test.fsh","test");
+   // p->bind();
+   //
+   // RenderCommon::Inst()->GetGeometryEngine()->drawSphere(p,true);
     ObjectInfo::Inst()->Render();
 }

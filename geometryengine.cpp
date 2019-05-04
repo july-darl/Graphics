@@ -228,7 +228,7 @@ void GeometryEngine::drawCube(QOpenGLShaderProgram *program, bool bTess)
 
     if(bTess)
     {
-        gl->glPatchParameteri(GL_PATCH_VERTICES, 4);
+        gl->glPatchParameteri(GL_PATCH_VERTICES,3);
         gl->glDrawElements(GL_PATCHES, 36, GL_UNSIGNED_SHORT, nullptr);
     }
     else
@@ -245,9 +245,6 @@ void GeometryEngine::drawPlane(QOpenGLShaderProgram *program, bool bTess)
     planeIndexBuf.bind();
 
     int offset = 0;
-
-    if(bTess)
-        gl->glPatchParameteri(GL_PATCH_VERTICES, 4);
 
     int vertexLocation = program->attributeLocation("a_position");
     program->enableAttributeArray(vertexLocation);
@@ -274,8 +271,9 @@ void GeometryEngine::drawPlane(QOpenGLShaderProgram *program, bool bTess)
 
     if(bTess)
     {
-        gl->glPatchParameteri(GL_PATCH_VERTICES, 4);
+        gl->glPatchParameteri(GL_PATCH_VERTICES, 3);
         gl->glDrawElements(GL_PATCHES, 6, GL_UNSIGNED_SHORT, nullptr);
+       // gl->glDrawArrays(GL_PATCHES, 0,6);
     }
     else
     {
@@ -317,7 +315,7 @@ void GeometryEngine::drawSphere(QOpenGLShaderProgram* program, bool bTess)
 
     if(bTess)
     {
-        gl->glPatchParameteri(GL_PATCH_VERTICES, 4);
+        gl->glPatchParameteri(GL_PATCH_VERTICES, 3);
         gl->glDrawElements(GL_PATCHES, 54000, GL_UNSIGNED_SHORT, nullptr);
     }
     else

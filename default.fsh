@@ -1,5 +1,4 @@
 #version 450 core
-#extension GL_NV_shadow_samplers_cube : enable
 in vec2 v_texcoord;
 
 uniform vec3 cameraPos;
@@ -42,8 +41,8 @@ uniform float hdrExp;
 
 uniform mat4 LightMatrix;
 
-varying vec2 farPlanePos;
-
+in vec2 farPlanePos;
+out vec4 fragColor;
 //    Param.x = rough;
 //    Param.y = metal;
 //    Param.z = ao;
@@ -108,7 +107,7 @@ float GetShadow(vec4 worldPos)
     {
         for(int j = -1; j <= 1; j++)
         {
-            float fDistanceMap = texture2D(ShadowMap, uv + vec2(1.0 * i / ScreenX, 1.0 * j / ScreenY)).x;
+            float fDistanceMap = texture(ShadowMap, uv + vec2(1.0 * i / ScreenX, 1.0 * j / ScreenY)).x;
             fShadow += fDistance - offset > fDistanceMap ? 0.8 : 1.0;
         }
     }
@@ -131,7 +130,7 @@ bool IsInShadow(vec4 worldPos)
 
     float offset = 0.001;
 
-    float distanceMap = texture2D(ShadowMap, uv).x;
+    float distanceMap = texture(ShadowMap, uv).x;
     return fDistance - offset > distanceMap;
 }
 
@@ -149,7 +148,7 @@ float GetSnowCoverRatio(vec4 worldPos)
     {
         for(int j = -1; j <= 1; j++)
         {
-            float fDistanceMap = texture2D(SnowDepth, uv + vec2(5.0 * i / ScreenX, 5.0 * j / ScreenY)).x;
+            float fDistanceMap = texture(SnowDepth, uv + vec2(5.0 * i / ScreenX, 5.0 * j / ScreenY)).x;
             fSnow += fDistance - 0.001 > fDistanceMap ? 0 : 1.0;
         }
     }
@@ -274,14 +273,14 @@ vec2 g_v2TwelveKernelBase[] =
 vec3 GetBlurColor(vec2 uv)
 {
     int kernelNum = 12;
-    vec4 v4Original = texture2D(Bloom, uv);
+    vec4 v4Original = texture(Bloom, uv);
 
     vec2 v4ScreenSize = vec2(ScreenX,ScreenY) / 5;
     vec3 v3Blurred = vec3(0, 0, 0);
     for(int i = 0; i < kernelNum; i++)
     {
        vec2 v2Offset = vec2(g_v2TwelveKernelBase[i].x / v4ScreenSize.x, g_v2TwelveKernelBase[i].y / v4ScreenSize.y);
-       vec4 v4Current = texture2D(Bloom, uv + v2Offset);
+       vec4 v4Current = texture(Bloom, uv + v2Offset);
        v3Blurred += mix(v4Original.rgb, v4Current.rgb, v4Original.a);
    }
    return v3Blurred / kernelNum;
@@ -299,7 +298,7 @@ vec3 GetGaussColor(vec2 uv)
         for(int j = -3; j <= 3;j++)
         {
             vec2 offset_uv = uv + vec2(5.0 * i /ScreenX, 5.0 * j /ScreenY);
-            vec3 color = texture2D(Color, offset_uv).xyz;
+            vec3 color = texture(Color, offset_uv).xyz;
             float weight = gauss[idx++];
             finalColor = finalColor + weight * color;
         }
@@ -320,7 +319,8 @@ vec3 GetBloomColor(vec2 uv)
         for(int j = -3; j <= 3;j++)
         {
             vec2 offset_uv = uv + vec2(5.0 * i /ScreenX, 5.0 * j /ScreenY);
-            vec3 color = texture2D(Bloom, offset_uv).xyz;
+            offset_uv = clamp(offset_uv,vec2(0,0),vec2(1,1));
+            vec3 color = texture(Bloom, offset_uv).xyz;
             float weight = gauss[idx++];
             finalColor = finalColor + weight * color;
         }
@@ -460,8 +460,8 @@ vec3 GetLocalLight(vec3 pos, float density, vec3 sunCol)
 
 void main(void)
 {
-    vec4 result = texture2D(NormalAndDepth, v_texcoord);
-    vec4 param  = texture2D(Param, v_texcoord);
+    vec4 result = texture(NormalAndDepth, v_texcoord);
+    vec4 param  = texture(Param, v_texcoord);
     float rough = param.x;
     float metal = param.y;
     float ao    = param.z;
@@ -509,7 +509,7 @@ void main(void)
         vec3 worldPos =  tmp.xyz / tmp.w;
 
         vec3 viewDir = normalize(cameraPos - worldPos);
-        vec3 albedo = texture2D(Color, v_texcoord).xyz;
+        vec3 albedo = texture(Color, v_texcoord).xyz;
 
         // Calculate Snow_D
         if(bSnow)
@@ -518,8 +518,8 @@ void main(void)
             float snowRatio = max(dot(normal,vec3(0,1,0)),0);
             snowRatio = min(snowRatio * 1.2 /(snowRatio + 0.3),1);
           //  snowRatio *= coverRatio;
-            vec3 snowColor = vec3(texture2D(Snow_D, vec2(worldPos.x,worldPos.z)/40));
-            vec3 snowNormal = UnpackNormal(vec3(texture2D(Snow_N, vec2(worldPos.x,worldPos.z)/40)));
+            vec3 snowColor = vec3(texture(Snow_D, vec2(worldPos.x,worldPos.z)/40));
+            vec3 snowNormal = UnpackNormal(vec3(texture(Snow_N, vec2(worldPos.x,worldPos.z)/40)));
             albedo = mix(albedo,snowColor,snowRatio);
             normal = mix(normal,snowNormal,snowRatio);
         }
@@ -530,11 +530,11 @@ void main(void)
         float eps = 0.001;
         vec3 last_pos = viewPos;
 
-        vec3 irradiance = textureCube(irradianceMap, normal).rgb;
+        vec3 irradiance = texture(irradianceMap, normal).rgb;
         vec3 reflectColor = vec3(0);
         if(UseSSR(id) )
         {
-            //albedo = mix(albedo,textureCube(CubeMap, reflectDir).xyz,0.2);
+            //albedo = mix(albedo,texture(CubeMap, reflectDir).xyz,0.2);
             float step = 0.2;
             int stepNum = 30;
 
@@ -550,16 +550,16 @@ void main(void)
                 vec2 uv = vec2(screenPos.x, screenPos.y) * 0.5 + vec2(0.5, 0.5);
                 if(uv.x > 0 && uv.x < 1 && uv.y > 0 && uv.y < 1)
                 {
-                    float depth = texture2D(NormalAndDepth, uv).w;
+                    float depth = texture(NormalAndDepth, uv).w;
                     if(depth == 1) break;
                     if(d > depth)
                     {
                         if(abs(d - depth) < eps)
                         {
-                            float newId = texture2D(Param, uv).w;
+                            float newId = texture(Param, uv).w;
                             if(!UseSSR(newId))
                             {
-                                reflectColor = texture2D(Color, uv).xyz;
+                                reflectColor = texture(Color, uv).xyz;
                             }
                             break;
                         }
@@ -582,14 +582,14 @@ void main(void)
                             tmp = ProjectMatrix * vec4(currPos,1);
                             screenPos = tmp.xyz / tmp.w;
                             uv = vec2(screenPos.x, screenPos.y) * 0.5 + vec2(0.5, 0.5);
-                            depth = texture2D(NormalAndDepth, uv).w;
+                            depth = texture(NormalAndDepth, uv).w;
                              if(depth == 1) break;
                             if(abs(d - depth) < 0.3 * eps)
                             {
-                                float newId = texture2D(Param, uv).w;
+                                float newId = texture(Param, uv).w;
                                 if(!UseSSR(newId))
                                 {
-                                    reflectColor = texture2D(Color, uv).xyz;
+                                    reflectColor = texture(Color, uv).xyz;
                                 }
                                 break;
                             }
@@ -651,8 +651,8 @@ void main(void)
         // specular
         float NDotV = dot(normal,viewDir);
         const float MAX_REFLECTION_LOD = 4.0;
-        vec3 prefilteredColor = textureCube(prefilterMap, reflectDir).rgb;
-        vec2 envBRDF = texture2D(brdfLUT, vec2(max(NDotV, 0.0), rough)).rg;
+        vec3 prefilteredColor = texture(prefilterMap, reflectDir).rgb;
+        vec2 envBRDF = texture(brdfLUT, vec2(max(NDotV, 0.0), rough)).rg;
         vec3 specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
 
         // diffuse
@@ -689,12 +689,12 @@ void main(void)
 
         vec3 gauss_color = GetBloomColor(v_texcoord);
         color = color * fShadow;
-        gl_FragColor = vec4(color + I * sun_color + gauss_color, 1.0);
+        fragColor = vec4(color + I * sun_color + gauss_color, 1.0);
     }
     else if(result ==vec4(1,1,1,1))
     {
        vec3 gauss_color = GetBloomColor(v_texcoord);
-        gl_FragColor = vec4(texture2D(Color, v_texcoord).xyz  + gauss_color, 1);
+        fragColor = vec4(texture(Color, v_texcoord).xyz  + gauss_color, 1);
     }
     else
     {
@@ -718,7 +718,7 @@ void main(void)
         vec3 light_color;
         for(int i = 0; i < stepNum; i++)
         {
-            vec3 pos = beginPos + i * step;
+            vec3 pos = beginPos + i * step + offset * 2;
 
 
             float sampled_density = GetCloudDensity(pos);//* GetHeightDensity(pos.y);
@@ -732,7 +732,7 @@ void main(void)
              / 4.0 * 3.1415;
 
             float powder = (1.0f - exp(-sampled_density*1));
-            vec3 localCol = GetLocalLight(pos,sampled_density,vec3(1,0.8,0.9)) * powder;
+            vec3 localCol = GetLocalLight(pos,sampled_density,vec3(1,0.9,0.9)) * powder;
           //  vec3 localCol = vec3(1,1,1) * (1.0f - exp(-sampled_density*2));
             cloud_color += (localCol * hg) * transmittance ;
             transmittance *= exp(-2*sampled_density);
@@ -748,7 +748,7 @@ void main(void)
 
         density = density/(density + 1);
         vec3 gauss_color = GetBloomColor(v_texcoord);
-        gl_FragColor = vec4(mix(sky_color,cloud_color,density) + gauss_color,1);
+        fragColor = vec4(mix(sky_color,cloud_color,density) + gauss_color,1);
 
     }
 }

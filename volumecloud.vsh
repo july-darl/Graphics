@@ -5,11 +5,11 @@ uniform mat4 ViewMatrix;
 uniform mat4 ModelMatrix;
 uniform mat4 IT_ModelMatrix;
 
-attribute vec4 a_position;
-attribute vec2 a_texcoord;
-attribute vec3 a_normal;
+in vec4 a_position;
+in vec2 a_texcoord;
+in vec3 a_normal;
 
-varying vec3 v_worldPos;
+out vec3 v_worldPos;
 
 void main(void)
 {

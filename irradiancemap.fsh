@@ -1,7 +1,11 @@
+#version 450
+
 uniform samplerCube environmentMap;
 
+in vec3 localPos;
+out vec4 fragColor;
+
 const float PI = 3.14159265359;
-varying vec3 localPos;
 void main()
 {
     vec3 irradiance = vec3(0.0);
@@ -22,10 +26,10 @@ void main()
             // tangent space to world
             vec3 sampleVec = tangentSample.x * right + tangentSample.y * up + tangentSample.z * normal;
 
-            irradiance += textureCube(environmentMap, sampleVec).rgb * cos(theta) * sin(theta);
+            irradiance += texture(environmentMap, sampleVec).rgb * cos(theta) * sin(theta);
             nrSamples++;
         }
     }
     irradiance = PI * irradiance * (1.0 / float(nrSamples));
-    gl_FragColor = vec4(irradiance,1);
+    fragColor = vec4(irradiance,1);
 }

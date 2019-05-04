@@ -1,9 +1,10 @@
 #version 450
 #extension GL_EXT_gpu_shader4 : enable
 
-varying vec2 v_texcoord;
+in vec2 v_texcoord;
 const float PI = 3.14159265359;
 
+out vec4 fragColor;
 float GeometrySchlickGGX(float NdotV, float roughness)
 {
     float a = roughness;
@@ -106,5 +107,5 @@ vec2 IntegrateBRDF(float NdotV, float roughness)
 void main()
 {
     vec2 integratedBRDF = IntegrateBRDF(v_texcoord.x, v_texcoord.y);
-    gl_FragColor = vec4(integratedBRDF,1,1);
+    fragColor = vec4(integratedBRDF,1,1);
 }

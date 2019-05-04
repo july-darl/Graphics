@@ -38,5 +38,9 @@
         <file>bloom.fsh</file>
         <file>fire.tcsh</file>
         <file>fire.tesh</file>
+        <file>test.vsh</file>
+        <file>test.fsh</file>
+        <file>test.tcsh</file>
+        <file>test.tesh</file>
     </qresource>
 </RCC>

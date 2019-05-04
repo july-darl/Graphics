@@ -4,6 +4,7 @@
 CBaseObjectWidget::CBaseObjectWidget()
 {
     bShadowInit("产生阴影");
+    bShowInit("show");
 
     SetLabel("位置");
 
@@ -29,6 +30,7 @@ CBaseObjectWidget::CBaseObjectWidget()
 void CBaseObjectWidget::OnSelectedObject(Object* p)
 {
     bShadowSetData(&p->bCastShadow);
+    bShowSetData(&p->bRender);
 
     posXSetData(&p->position.x);
     posYSetData(&p->position.y);

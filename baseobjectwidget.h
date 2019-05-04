@@ -12,6 +12,7 @@ public:
 private:
 
     DECLARE_CHECKBOX(bShadow)
+    DECLARE_CHECKBOX(bShow)
     DECLARE_SLIDER(posX)
     DECLARE_SLIDER(posY)
     DECLARE_SLIDER(posZ)

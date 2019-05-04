@@ -12,11 +12,11 @@ uniform sampler2D fire;
 uniform bool bUseNormalMap;
 uniform int id;
 
-varying vec2 v_texcoord;
-varying vec3 v_tangent;
-varying vec3 v_normal;
-varying vec2 v_depth;
-varying float v_fireRatio;
+in vec2 v_texcoord;
+in vec3 v_tangent;
+in vec3 v_normal;
+in vec2 v_depth;
+in float v_fireRatio;
 
 layout(location = 0) out vec4 NormalAndDepth;
 layout(location = 1) out vec4 Color;
@@ -37,7 +37,7 @@ void main(void)
 {
     if(bUseNormalMap)
     {
-        vec3 N = texture2D(normal, v_texcoord).xyz;
+        vec3 N = texture(normal, v_texcoord).xyz;
         NormalAndDepth.xyz = (UnpackNormal(N) + 1)/2;
     }
     else
@@ -49,7 +49,7 @@ void main(void)
     Color.xyz = color;
     if(Color.xyz == vec3(-1,-1,-1))
     {
-        Color.xyz = texture2D(albedo,v_texcoord).xyz;
+        Color.xyz = texture(albedo,v_texcoord).xyz;
     }
 
 
@@ -57,10 +57,10 @@ void main(void)
     Param.z = ao;
 
     if(Param.x == -1)
-        Param.x = texture2D(mask,v_texcoord).x;
+        Param.x = texture(mask,v_texcoord).x;
 
     if(Param.z == -1)
-        Param.z = texture2D(mask,v_texcoord).y;
+        Param.z = texture(mask,v_texcoord).y;
 
     Param.y = metal;
     Param.w = float(id) / 100;

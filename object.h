@@ -23,6 +23,7 @@ public:
     Vector3f             rotation = Vector3f(0,0,0);
     Vector3f             scale    = Vector3f(1,1,1);
     bool                 bCastShadow = true;
+    bool                 bRender = true;
     Shape                shape;
     string               type;
     int                  id;

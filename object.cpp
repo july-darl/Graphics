@@ -22,16 +22,16 @@ void Object::Draw(bool bTess)
     switch(shape)
     {
     case SHA_Cube:
-        RenderCommon::Inst()->GetGeometryEngine()->drawCube(program);
+        RenderCommon::Inst()->GetGeometryEngine()->drawCube(program, bTess);
         break;
     case SHA_Sphere:
-        RenderCommon::Inst()->GetGeometryEngine()->drawSphere(program);
+        RenderCommon::Inst()->GetGeometryEngine()->drawSphere(program, bTess);
         break;
     case SHA_Plane:
-        RenderCommon::Inst()->GetGeometryEngine()->drawPlane(program);
+        RenderCommon::Inst()->GetGeometryEngine()->drawPlane(program, bTess);
         break;
     default:
-        RenderCommon::Inst()->GetGeometryEngine()->drawPlane(program);
+        RenderCommon::Inst()->GetGeometryEngine()->drawPlane(program, bTess);
     }
 }
 
@@ -41,16 +41,16 @@ void Object::Draw(QOpenGLShaderProgram* p, bool bTess)
     switch(shape)
     {
     case SHA_Cube:
-        RenderCommon::Inst()->GetGeometryEngine()->drawCube(p);
+        RenderCommon::Inst()->GetGeometryEngine()->drawCube(p, bTess);
         break;
     case SHA_Sphere:
-        RenderCommon::Inst()->GetGeometryEngine()->drawSphere(p);
+        RenderCommon::Inst()->GetGeometryEngine()->drawSphere(p, bTess);
         break;
     case SHA_Plane:
-        RenderCommon::Inst()->GetGeometryEngine()->drawPlane(p);
+        RenderCommon::Inst()->GetGeometryEngine()->drawPlane(p, bTess);
         break;
     default:
-        RenderCommon::Inst()->GetGeometryEngine()->drawPlane(p);
+        RenderCommon::Inst()->GetGeometryEngine()->drawPlane(p, bTess);
     }
 }
 
@@ -270,7 +270,7 @@ void ObjectInfo::Render()
     shadowMapProgram->bind();
     for(size_t i = 0;i < vecObj.size(); i++)
     {
-        if(vecObj[i]->bCastShadow)
+        if(vecObj[i]->bRender && vecObj[i]->bCastShadow)
         {
             vecObj[i]->GenShadowMap();
         }
@@ -298,8 +298,11 @@ void ObjectInfo::Render()
 
     for(size_t i = 0;i < vecObj.size(); i++)
     {
-        vecObj[i]->Render();
-        vecObj[i]->Draw();
+        if(vecObj[i]->bRender)
+        {
+            vecObj[i]->Render();
+            vecObj[i]->Draw();
+        }
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     auto bloomBuffer = CResourceInfo::Inst()->CreateFrameBuffer("Bloom",screenX/2,screenY/2);
@@ -321,7 +324,10 @@ void ObjectInfo::Render()
 
     for(size_t i = 0;i < vecObj.size(); i++)
     {
-        vecObj[i]->LateRender();
+        if(vecObj[i]->bRender)
+        {
+            vecObj[i]->LateRender();
+        }
     }
 }
 

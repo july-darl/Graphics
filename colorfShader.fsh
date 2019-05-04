@@ -1,8 +1,8 @@
 #version 450 core
 uniform vec3 color;
 uniform float zFar;
-varying vec3 v_normal;
-varying vec2 v_depth;
+out vec3 v_normal;
+out vec2 v_depth;
 layout(location = 0) out vec4 Color;
 layout(location = 1) out vec4 NormalAndDepth;
 

@@ -7,7 +7,7 @@
 
 class GeometryEngine;
 
-class COpenGLWidget : public QOpenGLWidget, protected QOpenGLExtraFunctions
+class COpenGLWidget : public QOpenGLWidget, protected QOpenGLExtraFunctions//,protected QOpenGLFunctionsPrivate
 {
     Q_OBJECT
 public:

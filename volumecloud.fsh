@@ -12,7 +12,7 @@ uniform float     thickness;
 uniform float     mixRatio;
 uniform float     brightness;
 
-varying vec3      v_worldPos;
+in vec3      v_worldPos;
 
 layout(location = 0) out vec4 NormalAndDepth;
 layout(location = 1) out vec4 Color;

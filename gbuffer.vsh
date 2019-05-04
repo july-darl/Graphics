@@ -1,9 +1,4 @@
 #version 450 core
-#ifdef GL_ES
-// Set default precision to medium
-precision mediump int;
-precision mediump float;
-#endif
 
 uniform mat4 ModelMatrix;
 uniform mat4 IT_ModelMatrix;
@@ -13,15 +8,15 @@ uniform bool bFire;
 uniform sampler2D perlin;
 uniform float time;
 
-attribute vec4 a_position;
-attribute vec3 a_normal;
-attribute vec3 a_tangent;
-attribute vec2 a_texcoord;
+in vec4 a_position;
+in vec3 a_normal;
+in vec3 a_tangent;
+in vec2 a_texcoord;
 
-varying vec2 v_texcoord;
-varying vec3 v_tangent;
-varying vec3 v_normal;
-varying vec2 v_depth;
+out vec2 v_texcoord;
+out vec3 v_tangent;
+out vec3 v_normal;
+out vec2 v_depth;
 
 void main()
 {

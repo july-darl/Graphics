@@ -90,6 +90,10 @@ void Phong::SecondRender()
     {
         bloomProgram = CResourceInfo::Inst()->CreateTessProgram("fire.tcsh","fire.tesh","bloom.vsh","bloom.fsh","bloomTess");
     }
+   //auto p = CResourceInfo::Inst()->CreateTessProgram("test.tcsh","test.tesh","test.vsh","test.fsh","bloomTess");
+   //p->bind();
+   //
+   //RenderCommon::Inst()->GetGeometryEngine()->drawSphere(p,true);
 
     bloomProgram->bind();
 
@@ -131,8 +135,14 @@ void Phong::SecondRender()
     CResourceInfo::Inst()->CreateTexture("T_Fire_Tiled_D.TGA")->bind();
     bloomProgram->setUniformValue("fire",3);
 
-    Draw(bloomProgram, true);
-
+    if(bFire)
+    {
+        Draw(bloomProgram, true);
+    }
+    else
+    {
+        Draw(bloomProgram, false);
+    }
     gl->glViewport(0,0,screenX,screenY);
 
 }

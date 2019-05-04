@@ -1,9 +1,8 @@
-
 #version 450 core
-#extension GL_NV_shadow_samplers_cube : enable
+
 uniform samplerCube envCubemap;
-varying vec3 localPos;
-uniform vec3 zFar;
+in vec3 localPos;
+
 layout(location = 0) out vec4 NormalAndDepth;
 layout(location = 1) out vec4 Color;
 layout(location = 2) out vec4 Param;
@@ -11,7 +10,7 @@ layout(location = 2) out vec4 Param;
 void main()
 {
 
-    vec3 envColor = textureCube(envCubemap, normalize(localPos)).rgb;
+    vec3 envColor = texture(envCubemap, normalize(localPos)).rgb;
     envColor = envColor / (envColor + vec3(1.0));
     envColor = pow(envColor, vec3(1.0/2.2));
 

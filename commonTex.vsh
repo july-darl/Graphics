@@ -11,14 +11,15 @@ uniform mat4 ViewMatrix;
 uniform mat4 ProjectMatrix;
 uniform mat4 LightMatrix;
 uniform mat4 OrthoMatrix;
-attribute vec4 a_position;
-attribute vec3 a_normal;
-attribute vec2 a_texcoord;
+in vec4 a_position;
+in vec3 a_normal;
+in vec2 a_texcoord;
 
-varying vec2 v_texcoord;
-varying vec3 v_normal;
-varying vec3 worldPos;
-varying vec4 lightPos;
+out vec2 v_texcoord;
+out vec3 v_normal;
+out vec3 worldPos;
+out vec4 lightPos;
+
 void main()
 {
     gl_Position = ModelMatrix * a_position;

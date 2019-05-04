@@ -5,9 +5,9 @@ uniform mat4 OrthoMatrix;
 uniform mat4 SnowMatrix;
 uniform mat4 ModelMatrix;
 
-attribute vec4 a_position;
+in vec4 a_position;
 
-varying vec2 v_depth;
+out vec2 v_depth;
 
 void main()
 {
