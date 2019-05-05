@@ -3,10 +3,13 @@
 in vec2 v_texcoord[gl_MaxPatchVertices];
 in float v_fireRatio[gl_MaxPatchVertices];
 in vec3 v_normal[gl_MaxPatchVertices];
+in vec3 v_tangent[gl_MaxPatchVertices];
 
 out vec2 c_texcoord[gl_MaxPatchVertices];
 out float c_fireRatio[gl_MaxPatchVertices];
 out vec3 c_normal[gl_MaxPatchVertices];
+out vec3 c_tangent[gl_MaxPatchVertices];
+out float c_depth[gl_MaxPatchVertices];
 
 layout (vertices = 3) out;
 

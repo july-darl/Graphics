@@ -130,6 +130,12 @@ void Phong::SecondRender()
       //  CResourceInfo::Inst()->CreateTexture("Noise2.TGA")->bind();
         bloomProgram->setUniformValue("perlin", 2);
         bloomProgram->setUniformValue("time",RenderCommon::Inst()->GetTime());
+        bloomProgram->setUniformValue("cameraPos",Camera::Inst()->GetCameraPos());
+        bloomProgram->setUniformValue("zFar",RenderCommon::Inst()->GetZFarPlane());
+
+        QVector3D windDir(0.4f,1.0f,0.0f);
+        windDir.normalized();
+        bloomProgram->setUniformValue("windDir",windDir);
     }
 
     gl->glActiveTexture(GL_TEXTURE3);
