@@ -10,12 +10,10 @@ uniform sampler2D perlin;
 uniform vec3 windDir;
 
 in vec2 c_texcoord[gl_MaxPatchVertices];
-in float c_fireRatio[gl_MaxPatchVertices];
 in vec3 c_normal[gl_MaxPatchVertices];
 in vec3 c_tangent[gl_MaxPatchVertices];
 
 out vec2 v_texcoord;
-out float v_fireRatio;
 out vec3 v_normal;
 out vec3 v_tangent;
 out vec2 v_depth;
@@ -38,34 +36,36 @@ float interpolate1D(float v0, float v1, float v2)
 
 void main(void)
 {
-    float ratio = interpolate1D(c_fireRatio[0], c_fireRatio[1], c_fireRatio[2]);
-    vec4 tmp = gl_in[0].gl_Position * gl_TessCoord.x +
+
+    vec4 pos = gl_in[0].gl_Position * gl_TessCoord.x +
                gl_in[1].gl_Position * gl_TessCoord.y +
                gl_in[2].gl_Position * gl_TessCoord.z;
 
     vec3 normal = interpolate3D(c_normal[0],c_normal[1],c_normal[2]);
+    vec3 tangent = interpolate3D(c_tangent[0],c_tangent[1],c_tangent[2]);
+
     mat3 M1 = mat3(IT_ModelMatrix[0].xyz, IT_ModelMatrix[1].xyz, IT_ModelMatrix[2].xyz);
     v_normal = normalize(M1 * normal);
 
-    v_tangent = interpolate3D(c_tangent[0],c_tangent[1],c_tangent[2]);
+    mat3 M2 = mat3(ModelMatrix[0].xyz, ModelMatrix[1].xyz, ModelMatrix[2].xyz);
+    v_tangent = normalize(M2 * tangent);
 
 
-    vec3 pos = tmp.xyz/tmp.w;
-    v_fireRatio = 0;
     v_texcoord = interpolate2D(c_texcoord[0],c_texcoord[1],c_texcoord[2]);
 
-    v_fireRatio = dot(v_normal,windDir);
-    if(v_fireRatio > 0.5)
+    gl_Position = ModelMatrix * pos;
+    v_worldPos = gl_Position.xyz/gl_Position.w;
+
+    vec3 worldPos = v_worldPos;
+    float ratio = dot(v_normal,windDir);
+    if(ratio > 0.5)
     {
         float offset = texture(perlin,v_texcoord + time).r;
         offset = clamp((offset - 0.5) / (1 - 0.5),0,1);
-        pos += windDir * 0.5 * offset;
+        worldPos += windDir * 0.5 * offset;
     }
 
-    gl_Position = ModelMatrix * vec4(pos,1);
-
-    v_worldPos = gl_Position.xyz/gl_Position.w;
-    gl_Position = ViewMatrix * gl_Position;
+    gl_Position = ViewMatrix * vec4(worldPos,1);
 
     v_depth = gl_Position.zw;
     gl_Position = ProjectMatrix * gl_Position;

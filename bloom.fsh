@@ -30,7 +30,7 @@ void main(void)
     bool bMask = texture(Mask, v_texcoord).r > 0.8;
     vec3 bright_color;
     float NdotD = dot(windDir,N);
-    if(bFire && NdotD > 0)
+    if(bFire)
     {
         vec3 fire_base = vec3(0.585,0,0);
         vec3 fire_mod = vec3(0.975,0.553,0);
@@ -40,7 +40,7 @@ void main(void)
         float depth = -v_depth.x/v_depth.y/zFar * 20;
         float alpha = clamp(1 - pow((normalize(cameraPos - v_worldPos) * TBN).z, 5) * clamp(NdotD,0,1),0,1);
 
-        vec3 fire_color = mix(fire_base,fire_mod,alpha) * p;// * clamp(depth,0,1);
+        vec3 fire_color = mix(fire_base,fire_mod,alpha) ;//* 2 *  p;// * clamp(depth,0,1);
        //  vec3 fire_color = texture(fire,v_texcoord).xyz;
         if(color == vec3(-1,-1,-1))
         {
@@ -50,7 +50,8 @@ void main(void)
         {
             bright_color = color;
         }
-        fragColor = vec4(mix(bright_color,fire_color,NdotD),1);
+        fragColor = vec4(fire_color * 1,1);
+       // fragColor = vec4(mix(bright_color,fire_color,NdotD),1);
         //fragColor = vec4(depth,depth,depth,1);
     }
 
