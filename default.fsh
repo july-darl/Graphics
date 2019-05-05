@@ -691,9 +691,9 @@ void main(void)
         color = color * fShadow;
         fragColor = vec4(color + I * sun_color + gauss_color, 1.0);
     }
-    else if(result ==vec4(1,1,1,1))
+    else if(result == vec4(1,1,1,1))
     {
-       vec3 gauss_color = GetBloomColor(v_texcoord);
+        vec3 gauss_color = GetBloomColor(v_texcoord);
         fragColor = vec4(texture(Color, v_texcoord).xyz  + gauss_color, 1);
     }
     else
@@ -733,23 +733,25 @@ void main(void)
 
             float powder = (1.0f - exp(-sampled_density*1));
             vec3 localCol = GetLocalLight(pos,sampled_density,vec3(1,0.9,0.9)) * powder;
-          //  vec3 localCol = vec3(1,1,1) * (1.0f - exp(-sampled_density*2));
+
             cloud_color += (localCol * hg) * transmittance ;
             transmittance *= exp(-2*sampled_density);
-          //  light_color += vec3(1,0,0) * hg * beers;
-            //cloud_color +=  vec3(1,1,1)* clamp(2 * beers * powder,0,1);//+ sun_color* hg * powder   ;// + vec3(1,0,0) * hg * beers;
         }
 
         cloud_color += sky_color * transmittance;
 
         vec3 fogColor = vec3(1.0, 1.00, 0.94);
-        float factor = clamp(0, 1, (distance(cameraPos, beginPos))/ 1200.0);
+
+        float dis = sqrt((cameraPos.x - beginPos.x) *(cameraPos.x - beginPos.x)
+                         + (cameraPos.y - beginPos.y) *(cameraPos.y - beginPos.y)
+                         + (cameraPos.z - beginPos.z) *(cameraPos.z - beginPos.z));
+
+        float factor = clamp(dis/1200.0,0,1);
         cloud_color = mix(cloud_color, fogColor, factor);
 
         density = density/(density + 1);
         vec3 gauss_color = GetBloomColor(v_texcoord);
         fragColor = vec4(mix(sky_color,cloud_color,density) + gauss_color,1);
-
     }
 }
 

@@ -21,9 +21,9 @@ RenderCommon::RenderCommon()
 
     UpdateLightMatrix();
   //  CreateCubemap();
-    CreateHDRCubemap("test8_Ref.hdr");
-  //  CreateHDRCubemap("./BasketballCourt_3k.hdr");
-//    CreateHDRCubemap("./Ice_Lake_Ref.hdr");
+   // CreateHDRCubemap("test8_Ref.hdr");
+    CreateHDRCubemap("./BasketballCourt_3k.hdr");
+  //  CreateHDRCubemap("./Ice_Lake_Ref.hdr");
 
 }
 

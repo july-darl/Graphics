@@ -127,6 +127,7 @@ void Phong::SecondRender()
     {
         gl->glActiveTexture(GL_TEXTURE2);
         CResourceInfo::Inst()->CreateTexture("T_Perlin_Noise_M.TGA")->bind();
+      //  CResourceInfo::Inst()->CreateTexture("Noise2.TGA")->bind();
         bloomProgram->setUniformValue("perlin", 2);
         bloomProgram->setUniformValue("time",RenderCommon::Inst()->GetTime());
     }

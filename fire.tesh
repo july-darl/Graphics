@@ -7,7 +7,6 @@ uniform mat4 ViewMatrix;
 uniform mat4 ProjectMatrix;
 uniform float time;
 uniform sampler2D perlin;
-uniform bool bFire;
 
 in vec2 c_texcoord[gl_MaxPatchVertices];
 in float c_fireRatio[gl_MaxPatchVertices];
@@ -46,17 +45,13 @@ void main(void)
 
     vec3 dir = normalize(vec3(0.5,1,0));
 
-    v_fireRatio = 0;
-    float nDotD = dot(normal,dir);
-    if(nDotD > 0.7)
+    v_fireRatio = dot(normal,dir);
+    if(v_fireRatio > 0.5)
     {
-        v_fireRatio = nDotD;
         float offset = texture(perlin,vec2(pos.x,pos.z) /10 + time).r;
         offset = clamp((offset - 0.5) / (1 - 0.5),0,1);
         pos += dir * 0.5 * offset;
     }
-
-
 
     gl_Position = ModelMatrix * vec4(pos,1);
     gl_Position = ViewMatrix  * gl_Position;

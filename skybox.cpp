@@ -14,6 +14,7 @@ void SkyBox::Render()
 {
     QOpenGLFunctions* gl = QOpenGLContext::currentContext()->functions();
 
+    gl->glDepthMask(GL_FALSE);
     gl->glDisable(GL_CULL_FACE);
     gl->glDepthFunc(GL_LEQUAL);
 
@@ -33,4 +34,5 @@ void SkyBox::Render()
 
     gl->glDepthFunc(GL_LESS);
     gl->glEnable(GL_CULL_FACE);
+    gl->glDepthMask(GL_TRUE);
 }
