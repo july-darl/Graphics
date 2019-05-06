@@ -30,6 +30,7 @@ void Phong::Render()
     program->setUniformValue("ViewMatrix", Camera::Inst()->GetViewMatrix());
 
     program->setUniformValue("zFar", RenderCommon::Inst()->GetZFarPlane());
+    program->setUniformValue("zNear", RenderCommon::Inst()->GetZNearPlane());
     program->setUniformValue("metal",metal);
     program->setUniformValue("id",mode);
 
@@ -126,9 +127,10 @@ void Phong::SecondRender()
     if(bFire)
     {
         gl->glActiveTexture(GL_TEXTURE2);
-        CResourceInfo::Inst()->CreateTexture("T_Perlin_Noise_M.TGA")->bind();
-      //  CResourceInfo::Inst()->CreateTexture("Noise2.TGA")->bind();
-        bloomProgram->setUniformValue("perlin", 2);
+     //   CResourceInfo::Inst()->CreateTexture("T_Perlin_Noise_M.TGA")->bind();
+        CResourceInfo::Inst()->CreateTexture("Noise2.TGA")->bind();
+        bloomProgram->setUniformValue("noise", 2);
+
         bloomProgram->setUniformValue("time",RenderCommon::Inst()->GetTime());
         bloomProgram->setUniformValue("cameraPos",Camera::Inst()->GetCameraPos());
         bloomProgram->setUniformValue("zFar",RenderCommon::Inst()->GetZFarPlane());

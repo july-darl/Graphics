@@ -8,6 +8,7 @@ uniform bool bBloom;
 uniform bool bFire;
 uniform vec3 cameraPos;
 uniform float zFar;
+uniform float zNear;
 uniform sampler2D fire;
 uniform vec3 windDir;
 
@@ -24,12 +25,12 @@ vec3 T = normalize(v_tangent - N * v_tangent * N);
 vec3 B = cross(N, T);
 mat3 TBN = mat3(T,B,N);
 
-const float flame_engulf = 12.09;
+const float flame_engulf = 2.09;
 void main(void)
 {
     bool bMask = texture(Mask, v_texcoord).r > 0.8;
     vec3 bright_color;
-    float NdotD = dot(windDir,N);
+    float NdotD = dot(normalize(windDir),normalize(v_normal));
     if(bFire)
     {
         vec3 fire_base = vec3(0.585,0,0);
@@ -37,10 +38,10 @@ void main(void)
 
         float base = 0.5 * (NdotD + 1);
         float p = pow(base, flame_engulf);
-        float depth = -v_depth.x/v_depth.y/zFar * 20;
+        float depth = (-v_depth.x/v_depth.y - zNear)/zFar * 20;
         float alpha = clamp(1 - pow((normalize(cameraPos - v_worldPos) * TBN).z, 5) * clamp(NdotD,0,1),0,1);
 
-        vec3 fire_color = mix(fire_base,fire_mod,alpha) ;//* 2 *  p;// * clamp(depth,0,1);
+        vec3 fire_color = mix(fire_base,fire_mod,alpha) * p * clamp(depth,0,1);
        //  vec3 fire_color = texture(fire,v_texcoord).xyz;
         if(color == vec3(-1,-1,-1))
         {
@@ -52,7 +53,7 @@ void main(void)
         }
         fragColor = vec4(fire_color * 1,1);
        // fragColor = vec4(mix(bright_color,fire_color,NdotD),1);
-        //fragColor = vec4(depth,depth,depth,1);
+      //  fragColor = vec4(base,base,base,1);
     }
 
     else if(bBloom)

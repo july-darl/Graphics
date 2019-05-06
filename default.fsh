@@ -309,6 +309,7 @@ vec3 GetGaussColor(vec2 uv)
 
 vec3 GetBloomColor(vec2 uv)
 {
+    return texture(Bloom, uv).xyz;
     const int size = 7;
 
     vec3 finalColor = vec3(0,0,0);

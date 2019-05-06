@@ -6,7 +6,7 @@ uniform mat4 IT_ModelMatrix;
 uniform mat4 ViewMatrix;
 uniform mat4 ProjectMatrix;
 uniform float time;
-uniform sampler2D perlin;
+uniform sampler2D noise;
 uniform vec3 windDir;
 
 in vec2 c_texcoord[gl_MaxPatchVertices];
@@ -34,6 +34,18 @@ float interpolate1D(float v0, float v1, float v2)
     return (gl_TessCoord.x) * v0 + (gl_TessCoord.y) * v1 + (gl_TessCoord.z) * v2;
 }
 
+vec2 Rotator(vec2 uv, float speed)
+{
+    uv -= vec2(0.5);
+    uv = vec2(uv.x * cos(speed) - uv.y * sin(speed),
+              uv.x * sin(speed) - uv.y * cos(speed));
+    uv += vec2(0.5);
+    return uv;
+}
+
+const float flame_engulf = 4.09;
+const float radius = 1;
+
 void main(void)
 {
 
@@ -57,13 +69,40 @@ void main(void)
     v_worldPos = gl_Position.xyz/gl_Position.w;
 
     vec3 worldPos = v_worldPos;
-    float ratio = dot(v_normal,windDir);
-    if(ratio > 0.5)
-    {
-        float offset = texture(perlin,v_texcoord + time).r;
-        offset = clamp((offset - 0.5) / (1 - 0.5),0,1);
-        worldPos += windDir * 0.5 * offset;
-    }
+    float NdotD = dot(v_normal,windDir);
+
+    float base = 0.5 * (NdotD + 1); // to [0,1]
+    float p = pow(base,flame_engulf);
+    float p1 = pow(radius, 0.5)/2;
+    float p2 = clamp(pow(radius, 0.9)/0.25, 500.0, 1000.0);
+
+    float t = time/p2 * 75;
+
+    vec2 uv1 = vec2(2) * v_texcoord * p1 + t;
+    vec2 uv2 = Rotator(vec2(1) * v_texcoord * p1,time/p2) + t;
+
+    float alpha1 = cos((time/2) + 1)/2;
+    float alpha2 = cos((time*1.5) + 1)/2;
+
+    vec3 r10 = -mix(texture(noise,uv1).rgb,texture(noise,uv1).brg,alpha1);
+    vec3 r1 = normalize(r10) + 1;
+
+    vec3 r20 = mix(texture(noise,uv2).rgb,texture(noise,uv2).brg,alpha2);
+    vec3 r2 = normalize(r20) + 1;
+
+    float r = ((r1 + r2)/4).g;
+
+    vec3 q = (r20 + r10 + p * windDir)/3.5;
+    vec3 offset = (pow(r,4) * (v_normal + windDir) + q)  * radius * p;
+
+    worldPos += 0.3 * offset;
+   //
+   //if(NdotD > 0.5)
+   //{
+   //    float offset = texture(noise,v_texcoord + time).r;
+   //    offset = clamp((offset - 0.5) / (1 - 0.5),0,1);
+   //    worldPos += windDir * 0.5 * offset;
+   //}
 
     gl_Position = ViewMatrix * vec4(worldPos,1);
 
