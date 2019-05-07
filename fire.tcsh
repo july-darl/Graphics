@@ -38,14 +38,14 @@ float ComputeSize()
     {
         return 4;
     }
-    return 2;
+    return 1;
 }
 
 void main(void)
 {
 
-    //float size = ComputeSize();
-    gl_TessLevelInner[0] = 8;
+    float size = ComputeSize();
+    gl_TessLevelInner[0] = size;
     gl_TessLevelOuter[0] = 8;
     gl_TessLevelOuter[1] = 8;
     gl_TessLevelOuter[2] = 8;
