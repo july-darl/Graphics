@@ -20,12 +20,19 @@ in vec3 v_worldPos;
 
 out vec4 fragColor;
 
-vec3 N = normalize(v_normal);
-vec3 T = normalize(v_tangent - N * v_tangent * N);
-vec3 B = cross(N, T);
-mat3 TBN = mat3(T,B,N);
 
-const float flame_engulf = 1.09;
+
+vec3 World2Tangent(vec3 dir)
+{
+    vec3 N = normalize(v_normal);
+    vec3 T = normalize(v_tangent - N * v_tangent * N);
+    vec3 B = cross(N, T);
+    mat3 TBN = mat3(T,B,N);
+
+    return transpose(TBN) * dir;
+}
+
+const float flame_engulf = 2.09;
 void main(void)
 {
     bool bMask = texture(Mask, v_texcoord).r > 0.8;
@@ -41,20 +48,28 @@ void main(void)
         float depth = (-v_depth.x/v_depth.y )/zFar * 20;
 
         vec3 viewDir = normalize(cameraPos - v_worldPos);
-        vec3 tangent_viewDir = viewDir * TBN;
+        vec3 tangent_viewDir = World2Tangent(viewDir);
 
-        float z = normalize(tangent_viewDir).z;
+        float z = tangent_viewDir.z;//normalize(tangent_viewDir).z;
+
+        vec3 fire_color;
+        if(z > 0)
+        {
+            fire_color = vec3(1,0,0);
+        }
+        else
+        {
+            fire_color = vec3(0,1,0);
+        }
        // z = (z + 1)/2;
-        float t = clamp(1 - pow(z, 5),0,1);
-        float alpha =  t * clamp(NdotD,0,1);
-
-        vec3 fire_color = mix(fire_mod,fire_base,alpha) * p * clamp(depth,0,1);
-       //  vec3 fire_color = texture(fire,v_texcoord).xyz * p* clamp(depth,0,1);
-
-
-        fire_color = vec3(1.0) - exp(-fire_color * 0.6);
-        const float gamma = 2.2;
-        fire_color = pow(fire_color, vec3(1.0 / gamma));
+       // float t = clamp(1 - pow(z, 2),0,1);
+       // float alpha =  t * clamp(NdotD,0,1);
+       //
+       // vec3 fire_color = mix(fire_mod,fire_base,alpha) * p * clamp(depth,0,1);
+       //
+       // fire_color = vec3(1.0) - exp(-fire_color * 0.6);
+       // const float gamma = 2.2;
+       // fire_color = pow(fire_color, vec3(1.0 / gamma));
 
 
         fragColor = vec4(fire_color,1);
