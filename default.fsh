@@ -676,26 +676,25 @@ void main(void)
 
         if(bHDR)
         {
-            // 曝光色调映射
             color = vec3(1.0) - exp(-color * hdrExp);
            // color = color / (color + vec3(1.0));
         }
         if(bGamma)
         {
-            // Gamma校正
             const float gamma = 2.2;
             color = pow(color, vec3(1.0 / gamma));
-
         }
 
-        vec3 gauss_color = GetBloomColor(v_texcoord);
+        vec3 bloom_color = GetBloomColor(v_texcoord);
         color = color * fShadow;
-        fragColor = vec4(color + I * sun_color + gauss_color, 1.0);
+        fragColor = vec4(color + I * sun_color + bloom_color, 1.0);
+        //fragColor = vec4(bloom_color, 1.0);
     }
     else if(result == vec4(1,1,1,1))
     {
-        vec3 gauss_color = GetBloomColor(v_texcoord);
-        fragColor = vec4(texture(Color, v_texcoord).xyz  + gauss_color, 1);
+        vec3 bloom_color = GetBloomColor(v_texcoord);
+       // fragColor = vec4(bloom_color, 1);
+        fragColor = vec4(texture(Color, v_texcoord).xyz  + bloom_color, 1);
     }
     else
     {
@@ -751,8 +750,10 @@ void main(void)
         cloud_color = mix(cloud_color, fogColor, factor);
 
         density = density/(density + 1);
-        vec3 gauss_color = GetBloomColor(v_texcoord);
-        fragColor = vec4(mix(sky_color,cloud_color,density) + gauss_color,1);
+        vec3 bloom_color = GetBloomColor(v_texcoord);
+
+        fragColor = vec4(mix(sky_color,cloud_color,density) + bloom_color,1);
+       // fragColor = vec4(mix(sky_color,cloud_color,density) + bloom_color,1);
     }
 }
 

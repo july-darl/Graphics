@@ -55,6 +55,7 @@ void main(void)
 
     vec3 normal = interpolate3D(c_normal[0],c_normal[1],c_normal[2]);
     vec3 tangent = interpolate3D(c_tangent[0],c_tangent[1],c_tangent[2]);
+    v_texcoord = interpolate2D(c_texcoord[0],c_texcoord[1],c_texcoord[2]);
 
     mat3 M1 = mat3(IT_ModelMatrix[0].xyz, IT_ModelMatrix[1].xyz, IT_ModelMatrix[2].xyz);
     v_normal = normalize(M1 * normal);
@@ -63,12 +64,10 @@ void main(void)
     v_tangent = normalize(M2 * tangent);
 
 
-    v_texcoord = interpolate2D(c_texcoord[0],c_texcoord[1],c_texcoord[2]);
 
     gl_Position = ModelMatrix * pos;
     v_worldPos = gl_Position.xyz/gl_Position.w;
 
-    vec3 worldPos = v_worldPos;
     float NdotD = dot(v_normal,windDir);
 
     float base = 0.5 * (NdotD + 1); // to [0,1]
@@ -95,7 +94,7 @@ void main(void)
     vec3 q = (r20 + r10 + p * windDir)/3.5;
     vec3 offset = (pow(r,4) * (v_normal + windDir) + q)  * radius * p;
 
-    worldPos += 0.3 * offset;
+    v_worldPos += 0.5 * offset;
    //
    //if(NdotD > 0.5)
    //{
@@ -104,7 +103,7 @@ void main(void)
    //    worldPos += windDir * 0.5 * offset;
    //}
 
-    gl_Position = ViewMatrix * vec4(worldPos,1);
+    gl_Position = ViewMatrix * vec4(v_worldPos,1);
 
     v_depth = gl_Position.zw;
     gl_Position = ProjectMatrix * gl_Position;

@@ -205,9 +205,10 @@ void ObjectInfo::Load()
                         Phong* phong = static_cast<Phong*>(obj);
                         QString albedo = element.attribute("albedo");
                         QString normal = element.attribute("normal");
-                        if(!albedo.isEmpty())
+                        QString bFire = element.attribute("bFire");
+                        if(!bFire.isEmpty())
                         {
-                            //phong->albedo = QImage(albedo);
+                            phong->bFire = bFire == "1";
                         }
                     }
                 }
