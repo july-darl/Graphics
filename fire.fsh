@@ -35,10 +35,10 @@ void main(void)
     vec3 fire_base = vec3(0.585,0,0); // red
     vec3 fire_mod = vec3(0.975,0.553,0); // yellow
 
-    float base = 0.5 * (NdotD + 1);
-    float p = pow(base, flame_engulf);
+    float base = 0.5 * (NdotD + 1); // [0,1]
+    float p = pow(base, flame_engulf); // define energe
 
-    float depth = (-v_depth.x/v_depth.y )/zFar * 20;
+    float depth = (-v_depth.x/v_depth.y - zNear)/zFar * 20;
 
     vec3 viewDir = normalize(cameraPos - v_worldPos);
     vec3 tangent_viewDir = World2Tangent(viewDir);

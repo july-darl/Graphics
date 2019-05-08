@@ -120,6 +120,7 @@ void Phong::SecondRender()
         bloomProgram->setUniformValue("time",RenderCommon::Inst()->GetTime());
         bloomProgram->setUniformValue("cameraPos",Camera::Inst()->GetCameraPos());
         bloomProgram->setUniformValue("zFar",RenderCommon::Inst()->GetZFarPlane());
+        bloomProgram->setUniformValue("zNear",RenderCommon::Inst()->GetZNearPlane());
         bloomProgram->setUniformValue("radius",radius);
 
         QVector3D windDir(0.4f,1.0f,0.0f);

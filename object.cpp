@@ -206,10 +206,17 @@ void ObjectInfo::Load()
                         QString albedo = element.attribute("albedo");
                         QString normal = element.attribute("normal");
                         QString bFire = element.attribute("bFire");
+                        QString bSSR = element.attribute("bSSR");
+
                         if(!bFire.isEmpty())
                         {
                             phong->bFire = bFire == "1";
                         }
+                        if(!bSSR.isEmpty())
+                        {
+                            phong->bSSR = bSSR == "1";
+                        }
+
                     }
                 }
             }
