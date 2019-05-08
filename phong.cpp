@@ -75,85 +75,74 @@ void Phong::SecondRender()
 {
     QOpenGLFunctions* gl = QOpenGLContext::currentContext()->functions();
 
-    int screenX = RenderCommon::Inst()->GetScreenX();
-    int screenY = RenderCommon::Inst()->GetScreenY();
-    int width = screenX / 2;
-    int height = screenY / 2;
-
-    gl->glViewport(0,0,width,height);
-
     QOpenGLShaderProgram* bloomProgram = nullptr;
     if(!bFire)
     {
         bloomProgram = CResourceInfo::Inst()->CreateProgram("bloom.vsh","bloom.fsh","bloom");
+        bloomProgram->bind();
+
+        if(albedo != 0)
+        {
+            gl->glActiveTexture(GL_TEXTURE0);
+            gl->glBindTexture(GL_TEXTURE_2D, albedo);
+            bloomProgram->setUniformValue("albedo", 0);
+            bloomProgram->setUniformValue("color",QVector3D(-1,-1,-1));
+        }
+        else
+        {
+            bloomProgram->setUniformValue("color",QVector3D(color.x,color.y,color.z));
+        }
+
+
+        gl->glActiveTexture(GL_TEXTURE1);
+        gl->glBindTexture(GL_TEXTURE_2D, maskTex);
+        bloomProgram->setUniformValue("Mask", 1);
+
+        bloomProgram->setUniformValue("bBloom", bBloom);
     }
     else
     {
-        bloomProgram = CResourceInfo::Inst()->CreateTessProgram("fire.tcsh","fire.tesh","bloom.vsh","bloom.fsh","bloomTess");
-    }
-   //auto p = CResourceInfo::Inst()->CreateTessProgram("test.tcsh","test.tesh","test.vsh","test.fsh","bloomTess");
-   //p->bind();
-   //
-   //RenderCommon::Inst()->GetGeometryEngine()->drawSphere(p,true);
 
-    bloomProgram->bind();
+        bloomProgram = CResourceInfo::Inst()->CreateTessProgram("fire.tcsh","fire.tesh","fire.vsh","fire.fsh","fire");
+        bloomProgram->bind();
 
-    bloomProgram->setUniformValue("ModelMatrix",modelMatrix);
-    bloomProgram->setUniformValue("IT_ModelMatrix",IT_modelMatrix);
-    bloomProgram->setUniformValue("ProjectMatrix",RenderCommon::Inst()->GetProjectMatrix());
-    bloomProgram->setUniformValue("ViewMatrix", Camera::Inst()->GetViewMatrix());
+        gl->glEnable(GL_BLEND);
+        gl->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+       // gl->glBlendFunc(GL_SRC_ALPHA, GL_DST_ALPHA);
+       // gl->glDepthMask(GL_FALSE);
 
-    if(albedo != 0)
-    {
-        gl->glActiveTexture(GL_TEXTURE0);
-        gl->glBindTexture(GL_TEXTURE_2D, albedo);
-        bloomProgram->setUniformValue("albedo", 0);
-        bloomProgram->setUniformValue("color",QVector3D(-1,-1,-1));
-    }
-    else
-    {
-        bloomProgram->setUniformValue("color",QVector3D(color.x,color.y,color.z));
-    }
-    gl->glActiveTexture(GL_TEXTURE1);
-    gl->glBindTexture(GL_TEXTURE_2D, maskTex);
-    bloomProgram->setUniformValue("Mask", 1);
-
-    bloomProgram->setUniformValue("bFire",bFire);
-    bloomProgram->setUniformValue("bBloom", bBloom);
-    bloomProgram->setUniformValue("width", width);
-    bloomProgram->setUniformValue("height",height);
-
-
-    if(bFire)
-    {
         gl->glActiveTexture(GL_TEXTURE2);
-     //   CResourceInfo::Inst()->CreateTexture("T_Perlin_Noise_M.TGA")->bind();
         CResourceInfo::Inst()->CreateTexture("Noise2.TGA")->bind();
         bloomProgram->setUniformValue("noise", 2);
 
+        float radius = max(scale.x,scale.y);
+        radius = max(scale.x,scale.z);
         bloomProgram->setUniformValue("time",RenderCommon::Inst()->GetTime());
         bloomProgram->setUniformValue("cameraPos",Camera::Inst()->GetCameraPos());
         bloomProgram->setUniformValue("zFar",RenderCommon::Inst()->GetZFarPlane());
+        bloomProgram->setUniformValue("radius",radius);
 
         QVector3D windDir(0.4f,1.0f,0.0f);
         windDir.normalized();
         bloomProgram->setUniformValue("windDir",windDir);
     }
 
-    gl->glActiveTexture(GL_TEXTURE3);
-    CResourceInfo::Inst()->CreateTexture("T_Fire_Tiled_D.TGA")->bind();
-    bloomProgram->setUniformValue("fire",3);
+    bloomProgram->setUniformValue("ModelMatrix",modelMatrix);
+    bloomProgram->setUniformValue("IT_ModelMatrix",IT_modelMatrix);
+    bloomProgram->setUniformValue("ProjectMatrix",RenderCommon::Inst()->GetProjectMatrix());
+    bloomProgram->setUniformValue("ViewMatrix", Camera::Inst()->GetViewMatrix());
+
 
     if(bFire)
     {
         Draw(bloomProgram, true);
+       // gl->glDepthMask(GL_TRUE);
+        gl->glDisable(GL_BLEND);
     }
     else
     {
         Draw(bloomProgram, false);
     }
-    gl->glViewport(0,0,screenX,screenY);
-
 }
 
 void Phong::SetImage(const QString& path, GLuint& tex, QImage& img)

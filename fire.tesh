@@ -7,6 +7,7 @@ uniform mat4 ViewMatrix;
 uniform mat4 ProjectMatrix;
 uniform float time;
 uniform sampler2D noise;
+uniform float radius;
 uniform vec3 windDir;
 
 in vec2 c_texcoord[gl_MaxPatchVertices];
@@ -43,9 +44,7 @@ vec2 Rotator(vec2 uv, float speed)
     return uv;
 }
 
-const float flame_engulf = 4.09;
-const float radius = 1;
-
+const float flame_engulf = 12.09;
 void main(void)
 {
 
@@ -63,47 +62,44 @@ void main(void)
     mat3 M2 = mat3(ModelMatrix[0].xyz, ModelMatrix[1].xyz, ModelMatrix[2].xyz);
     v_tangent = normalize(M2 * tangent);
 
+    vec3 worldPos;
 
 
     gl_Position = ModelMatrix * pos;
-    v_worldPos = gl_Position.xyz/gl_Position.w;
+    worldPos = gl_Position.xyz/gl_Position.w;
 
     float NdotD = dot(v_normal,windDir);
 
-    float base = 0.5 * (NdotD + 1); // to [0,1]
-    float p = pow(base,flame_engulf);
-    float p1 = pow(radius, 0.5)/2;
-    float p2 = clamp(pow(radius, 0.9)/0.25, 500.0, 1000.0);
+    //if(NdotD > 0)
+    {
+        float base = 0.5 * (NdotD + 1); // to [0,1]
+        float p = pow(base,flame_engulf);
+        float p1 = pow(radius, 0.5)/2;
+        float p2 = clamp(pow(radius, 0.9)/0.25, 500.0, 1000.0);
 
-    float t = time/p2 * 75;
+        float t = time/p2 * 75;
 
-    vec2 uv1 = vec2(2) * v_texcoord * p1 + t;
-    vec2 uv2 = Rotator(vec2(1) * v_texcoord * p1,time/p2) + t;
+        vec2 uv1 = vec2(2) * v_texcoord * p1 + t;
+        vec2 uv2 = Rotator(vec2(1) * v_texcoord * p1,time/p2) + t;
 
-    float alpha1 = cos((time/2) + 1)/2;
-    float alpha2 = cos((time*1.5) + 1)/2;
+        float alpha1 = cos((time/2) + 1)/2;
+        float alpha2 = cos((time*1.5) + 1)/2;
 
-    vec3 r10 = -mix(texture(noise,uv1).rgb,texture(noise,uv1).brg,alpha1);
-    vec3 r1 = normalize(r10) + 1;
+        vec3 r10 = -mix(texture(noise,uv1).rgb,texture(noise,uv1).brg,alpha1);
+        vec3 r1 = normalize(r10) + 1;
 
-    vec3 r20 = mix(texture(noise,uv2).rgb,texture(noise,uv2).brg,alpha2);
-    vec3 r2 = normalize(r20) + 1;
+        vec3 r20 = mix(texture(noise,uv2).rgb,texture(noise,uv2).brg,alpha2);
+        vec3 r2 = normalize(r20) + 1;
 
-    float r = ((r1 + r2)/4).g;
+        float r = ((r1 + r2)/4).g;
 
-    vec3 q = (r20 + r10 + p * windDir)/3.5;
-    vec3 offset = (pow(r,4) * (v_normal + windDir) + q)  * radius * p;
+        vec3 q = (r20 + r10 + p * windDir)/3.5;
+        vec3 offset = (pow(r,4) * (v_normal + windDir) + q)  * radius * p;
 
-    v_worldPos += 0.5 * offset;
-   //
-   //if(NdotD > 0.5)
-   //{
-   //    float offset = texture(noise,v_texcoord + time).r;
-   //    offset = clamp((offset - 0.5) / (1 - 0.5),0,1);
-   //    worldPos += windDir * 0.5 * offset;
-   //}
-
-    gl_Position = ViewMatrix * vec4(v_worldPos,1);
+        worldPos += 0.3 * offset;
+    }
+    v_worldPos = worldPos;
+    gl_Position = ViewMatrix * vec4(worldPos,1);
 
     v_depth = gl_Position.zw;
     gl_Position = ProjectMatrix * gl_Position;

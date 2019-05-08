@@ -306,7 +306,7 @@ void ObjectInfo::Render()
         }
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    auto bloomBuffer = CResourceInfo::Inst()->CreateFrameBuffer("Bloom",screenX/2,screenY/2);
+    auto bloomBuffer = CResourceInfo::Inst()->CreateFrameBuffer("Bloom",screenX,screenY);
     glBindFramebuffer(GL_FRAMEBUFFER, bloomBuffer->frameBuffer);
     glClearColor(0,0,0,1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -342,7 +342,7 @@ void ObjectInfo::DelayRender()
     auto shadowMapFrameBuffer = CResourceInfo::Inst()->CreateFrameBuffer("ShadowMap", screenX, screenY);
     auto snowMapFrameBuffer = CResourceInfo::Inst()->CreateFrameBuffer("SnowMap", screenX, screenY);
     auto gFrameBuffer = CResourceInfo::Inst()->CreateFrameBuffer("GBuffer", screenX, screenY, 3);
-     auto bloomBuffer = CResourceInfo::Inst()->CreateFrameBuffer("Bloom", screenX/2, screenY/2);
+    auto bloomBuffer = CResourceInfo::Inst()->CreateFrameBuffer("Bloom", screenX, screenY);
 
     delayProgram->bind();
 

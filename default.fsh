@@ -309,23 +309,27 @@ vec3 GetGaussColor(vec2 uv)
 
 vec3 GetBloomColor(vec2 uv)
 {
-    return texture(Bloom, uv).xyz;
-    const int size = 7;
-
-    vec3 finalColor = vec3(0,0,0);
-    vec3 max = vec3(0,0,0);
-    int idx = 0;
-    for(int i = -3;i <= 3;i++)
-    {
-        for(int j = -3; j <= 3;j++)
-        {
-            vec2 offset_uv = uv + vec2(5.0 * i /ScreenX, 5.0 * j /ScreenY);
-            offset_uv = clamp(offset_uv,vec2(0,0),vec2(1,1));
-            vec3 color = texture(Bloom, offset_uv).xyz;
-            float weight = gauss[idx++];
-            finalColor = finalColor + weight * color;
-        }
-    }
+    vec3 finalColor = texture(Bloom, uv).xyz;
+   //const int size = 7;
+   //
+   //vec3 finalColor = vec3(0,0,0);
+   //vec3 max = vec3(0,0,0);
+   //int idx = 0;
+   //for(int i = -3;i <= 3;i++)
+   //{
+   //    for(int j = -3; j <= 3;j++)
+   //    {
+   //        vec2 offset_uv = uv + vec2(5.0 * i /ScreenX, 5.0 * j /ScreenY);
+   //        offset_uv = clamp(offset_uv,vec2(0,0),vec2(1,1));
+   //        vec3 color = texture(Bloom, offset_uv).xyz;
+   //        float weight = gauss[idx++];
+   //        finalColor = finalColor + weight * color;
+   //    }
+   //}
+   //
+    finalColor = vec3(1.0) - exp(-finalColor * 0.8);
+    const float gamma = 2.2;
+    finalColor = pow(finalColor, vec3(1.0 / gamma));
 
     return finalColor;
 }
@@ -439,7 +443,7 @@ float GetCloudDensity(vec3 pos)
     return thick * base_density * 1;
 }
 
-vec3 GetLocalLight(vec3 pos, float density, vec3 sunCol)
+vec3 GetCloudLight(vec3 pos, float density, vec3 sunCol)
 {
     sunCol *= 200.0f;
    float dist = abs(600 - pos.y);			//到光源的距离
@@ -720,7 +724,6 @@ void main(void)
         {
             vec3 pos = beginPos + i * step + offset * 2;
 
-
             float sampled_density = GetCloudDensity(pos);//* GetHeightDensity(pos.y);
             density += sampled_density;
 
@@ -732,7 +735,7 @@ void main(void)
              / 4.0 * 3.1415;
 
             float powder = (1.0f - exp(-sampled_density*1));
-            vec3 localCol = GetLocalLight(pos,sampled_density,vec3(1,0.9,0.9)) * powder;
+            vec3 localCol = GetCloudLight(pos,sampled_density,vec3(1,0.9,0.9)) * powder;
 
             cloud_color += (localCol * hg) * transmittance ;
             transmittance *= exp(-2*sampled_density);
@@ -753,7 +756,6 @@ void main(void)
         vec3 bloom_color = GetBloomColor(v_texcoord);
 
         fragColor = vec4(mix(sky_color,cloud_color,density) + bloom_color,1);
-       // fragColor = vec4(mix(sky_color,cloud_color,density) + bloom_color,1);
     }
 }
 

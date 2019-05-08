@@ -42,5 +42,7 @@
         <file>test.fsh</file>
         <file>test.tcsh</file>
         <file>test.tesh</file>
+        <file>fire.vsh</file>
+        <file>fire.fsh</file>
     </qresource>
 </RCC>
