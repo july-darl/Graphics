@@ -327,7 +327,8 @@ vec3 GetBloomColor(vec2 uv)
    //    }
    //}
    //
-    finalColor = vec3(1.0) - exp(-finalColor * 0.8);
+    finalColor *= 10;
+    finalColor = vec3(1.0) - exp(-finalColor * 5.0);
     const float gamma = 2.2;
     finalColor = pow(finalColor, vec3(1.0 / gamma));
 

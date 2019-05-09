@@ -38,18 +38,18 @@ void main(void)
     float base = 0.5 * (NdotD + 1); // [0,1]
     float p = pow(base, flame_engulf); // define energe
 
-    float depth = (-v_depth.x/v_depth.y - zNear)/zFar * 20;
+    float depth = (-v_depth.x/v_depth.y - zNear)/zFar * 10;
 
     vec3 viewDir = normalize(cameraPos - v_worldPos);
     vec3 tangent_viewDir = World2Tangent(viewDir);
 
     float z = tangent_viewDir.z;
-
-    float t = 1 - pow(z,5);
-    t = clamp(t, 0, 1);
+    z = clamp(z,0,1);
+    float t = 1 - pow(z,10);
+    //t = clamp(t, 0, 1);
     float alpha =  t * clamp(NdotD,0,1);
 
     vec3 fire_color = mix(fire_mod,fire_base,alpha) * p * clamp(depth,0,1);
 
-    fragColor = vec4(fire_color,0.5);
+    fragColor = vec4(fire_color/10,1.0);
 }

@@ -107,7 +107,8 @@ void Phong::SecondRender()
         bloomProgram->bind();
 
         gl->glEnable(GL_BLEND);
-        gl->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      //  gl->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        gl->glBlendFunc(GL_ONE, GL_ONE);
        // gl->glBlendFunc(GL_SRC_ALPHA, GL_DST_ALPHA);
        // gl->glDepthMask(GL_FALSE);
 
