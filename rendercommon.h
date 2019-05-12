@@ -18,6 +18,7 @@ enum Shape
     SHA_Plane,
     SHA_Cube,
     SHA_Sphere,
+    SHA_Obj,
     ShapeNum,
 };
 

@@ -27,6 +27,9 @@ void Object::Draw(bool bTess)
     case SHA_Sphere:
         RenderCommon::Inst()->GetGeometryEngine()->drawSphere(program, bTess);
         break;
+    case SHA_Obj:
+        RenderCommon::Inst()->GetGeometryEngine()->drawObj(m_strObjName, program, bTess);
+        break;
     case SHA_Plane:
         RenderCommon::Inst()->GetGeometryEngine()->drawPlane(program, bTess);
         break;
@@ -48,6 +51,9 @@ void Object::Draw(QOpenGLShaderProgram* p, bool bTess)
         break;
     case SHA_Plane:
         RenderCommon::Inst()->GetGeometryEngine()->drawPlane(p, bTess);
+        break;
+    case SHA_Obj:
+        RenderCommon::Inst()->GetGeometryEngine()->drawObj(m_strObjName, p, bTess);
         break;
     default:
         RenderCommon::Inst()->GetGeometryEngine()->drawPlane(p, bTess);
@@ -165,6 +171,11 @@ void ObjectInfo::Load()
                     else if(shape == "plane")
                     {
                         obj->shape = SHA_Plane;
+                    }
+                    else
+                    {
+                        obj->shape = SHA_Obj;
+                        obj->SetObjName(shape.toStdString());
                     }
                     obj->SetName(name.toStdString());
                     obj->bCastShadow = bShadow != "0";

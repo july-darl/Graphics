@@ -234,7 +234,7 @@ bool UseSSR(float id)
    return abs(100 * id - 1) < 0.01;
 }
 
-bool UseFire(float id)
+bool UseBloom(float id)
 {
     return abs(100 * id - 2) < 0.01;
 }
@@ -307,32 +307,38 @@ vec3 GetGaussColor(vec2 uv)
     return finalColor;
 }
 
-vec3 GetBloomColor(vec2 uv)
+vec3 GetBloomColor(vec2 uv, bool bBloom)
 {
-    vec3 finalColor = texture(Bloom, uv).xyz;
-   //const int size = 7;
-   //
-   //vec3 finalColor = vec3(0,0,0);
-   //vec3 max = vec3(0,0,0);
-   //int idx = 0;
-   //for(int i = -3;i <= 3;i++)
-   //{
-   //    for(int j = -3; j <= 3;j++)
-   //    {
-   //        vec2 offset_uv = uv + vec2(5.0 * i /ScreenX, 5.0 * j /ScreenY);
-   //        offset_uv = clamp(offset_uv,vec2(0,0),vec2(1,1));
-   //        vec3 color = texture(Bloom, offset_uv).xyz;
-   //        float weight = gauss[idx++];
-   //        finalColor = finalColor + weight * color;
-   //    }
-   //}
-   //
-    finalColor *= 10;
-    finalColor = vec3(1.0) - exp(-finalColor * 5.0);
-    const float gamma = 2.2;
-    finalColor = pow(finalColor, vec3(1.0 / gamma));
+    if(!bBloom)
+    {
+        vec3 finalColor = texture(Bloom, uv).xyz;
+        finalColor *= 10;
+        finalColor = vec3(1.0) - exp(-finalColor * 5.0);
+        const float gamma = 2.2;
+        finalColor = pow(finalColor, vec3(1.0 / gamma));
 
-    return finalColor;
+        return finalColor;
+    }
+    else
+    {
+        const int size = 7;
+
+        vec3 finalColor = vec3(0,0,0);
+        vec3 max = vec3(0,0,0);
+        int idx = 0;
+        for(int i = -3;i <= 3;i++)
+        {
+            for(int j = -3; j <= 3;j++)
+            {
+                vec2 offset_uv = uv + vec2(5.0 * i /ScreenX, 5.0 * j /ScreenY);
+                offset_uv = clamp(offset_uv,vec2(0,0),vec2(1,1));
+                vec3 color = texture(Bloom, offset_uv).xyz;
+                float weight = gauss[idx++];
+                finalColor = finalColor + weight * color;
+            }
+        }
+        return finalColor;
+    }
 }
 
 
@@ -690,14 +696,14 @@ void main(void)
             color = pow(color, vec3(1.0 / gamma));
         }
 
-        vec3 bloom_color = GetBloomColor(v_texcoord);
+        vec3 bloom_color = GetBloomColor(v_texcoord, UseBloom(id));
         color = color * fShadow;
         fragColor = vec4(color + I * sun_color + bloom_color, 1.0);
         //fragColor = vec4(bloom_color, 1.0);
     }
     else if(result == vec4(1,1,1,1))
     {
-        vec3 bloom_color = GetBloomColor(v_texcoord);
+        vec3 bloom_color = GetBloomColor(v_texcoord, UseBloom(id));
        // fragColor = vec4(bloom_color, 1);
         fragColor = vec4(texture(Color, v_texcoord).xyz  + bloom_color, 1);
     }
@@ -754,7 +760,7 @@ void main(void)
         cloud_color = mix(cloud_color, fogColor, factor);
 
         density = density/(density + 1);
-        vec3 bloom_color = GetBloomColor(v_texcoord);
+        vec3 bloom_color = GetBloomColor(v_texcoord, UseBloom(id));
 
         fragColor = vec4(mix(sky_color,cloud_color,density) + bloom_color,1);
     }

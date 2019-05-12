@@ -18,6 +18,7 @@ protected:
     QMatrix4x4           IT_modelMatrix;
 
     string               m_strName;
+    string               m_strObjName;
 public:
     Vector3f             position = Vector3f(0,0,0);
     Vector3f             rotation = Vector3f(0,0,0);
@@ -30,6 +31,7 @@ public:
 
     const string&        GetName() { return m_strName; }
     void                 SetName(const string& name) { m_strName = name;}
+    void                 SetObjName(const string& name) { m_strObjName = name;}
 
     void                 GenShadowMap();
     void                 GenSnowDepth();

@@ -17,7 +17,7 @@ void Phong::Render()
     {
         mode += 1;
     }
-    if(bFire)
+    if(bBloom)
     {
         mode += 2;
     }
@@ -33,7 +33,6 @@ void Phong::Render()
     program->setUniformValue("zNear", RenderCommon::Inst()->GetZNearPlane());
     program->setUniformValue("metal",metal);
     program->setUniformValue("id",mode);
-
 
 
     if(albedo != 0)

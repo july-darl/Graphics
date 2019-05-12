@@ -60,8 +60,10 @@ RESOURCES += \
     shaders.qrc \
     config.qrc
 
-# install
-target.path = $$[QT_INSTALL_EXAMPLES]/opengl/cube
-INSTALLS += target
+DLLDESTDIR += bin
 
-DISTFILES +=
+INCLUDEPATH += include
+
+LIBS += -L$$PWD/lib/ \
+        -lassimp-vc140-mt
+

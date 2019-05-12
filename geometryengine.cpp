@@ -1,24 +1,12 @@
 
 #include "geometryengine.h"
-
 #include <QVector2D>
 #include <QVector3D>
 #include <QVector>
 
+
 GeometryEngine::GeometryEngine()
-    :cubeIndexBuf(QOpenGLBuffer::IndexBuffer),
-      planeIndexBuf(QOpenGLBuffer::IndexBuffer),
-      sphereIndexBuf(QOpenGLBuffer::IndexBuffer)
 {
-    cubeArrayBuf.create();
-    cubeIndexBuf.create();
-
-    planeArrayBuf.create();
-    planeIndexBuf.create();
-
-    sphereArrayBuf.create();
-    sphereIndexBuf.create();
-
     initPlaneGeometry();
     initSphereGeometry();
     initCubeGeometry();
@@ -26,14 +14,141 @@ GeometryEngine::GeometryEngine()
 
 GeometryEngine::~GeometryEngine()
 {
-    cubeArrayBuf.destroy();
-    cubeIndexBuf.destroy();
 
-    planeArrayBuf.destroy();
-    planeIndexBuf.destroy();
+}
 
-    sphereArrayBuf.destroy();
-    sphereIndexBuf.destroy();
+bool GeometryEngine::loadObj(string path)
+{
+    if(mapMesh.find(path) != mapMesh.end())
+    {
+        return true;
+    }
+
+    Assimp::Importer import;
+    const aiScene *scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+
+    if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+    {
+        qDebug() << "ERROR::ASSIMP::" << import.GetErrorString() ;
+        return false;
+    }
+    string directory = path.substr(0, path.find_last_of('/'));
+
+    vector<VertexData> vertices;
+    vector<GLushort> indices;
+
+    processNode(vertices, indices, scene->mRootNode, scene);
+    for(size_t i = 0;i < indices.size() / 3; i++)
+    {
+        CalTangent(vertices[indices[3 * i]],vertices[indices[3 * i + 1]],vertices[indices[3 * i + 2]]);
+    }
+
+    MeshBuffer* mesh = new MeshBuffer();
+    mesh->Init(vertices.data(),static_cast<int>(vertices.size()));
+    mesh->Init(indices.data(),static_cast<int>(indices.size()));
+
+    mapMesh[path] = mesh;
+    return true;
+}
+
+void GeometryEngine::drawObj(string path,QOpenGLShaderProgram* program,bool bTess)
+{
+    if(mapMesh.find(path) == mapMesh.end())
+    {
+        if(!loadObj(path))
+        {
+            return;
+        }
+    }
+
+    MeshBuffer* mesh = mapMesh[path];
+    mesh->bind();
+
+    auto gl = QOpenGLContext::currentContext()->extraFunctions();
+
+    int offset = 0;
+
+    int vertexLocation = program->attributeLocation("a_position");
+    program->enableAttributeArray(vertexLocation);
+    program->setAttributeBuffer(vertexLocation, GL_FLOAT, offset, 3, sizeof(VertexData));
+
+    offset += sizeof(QVector3D);
+
+    int tangentLocation = program->attributeLocation("a_tangent");
+    program->enableAttributeArray(tangentLocation);
+    program->setAttributeBuffer(tangentLocation, GL_FLOAT, offset, 3, sizeof(VertexData));
+
+    offset += sizeof(QVector3D);
+
+    int normalLocation = program->attributeLocation("a_normal");
+    program->enableAttributeArray(normalLocation);
+    program->setAttributeBuffer(normalLocation, GL_FLOAT, offset, 3, sizeof(VertexData));
+
+    offset += sizeof(QVector3D);
+
+    int texcoordLocation = program->attributeLocation("a_texcoord");
+    program->enableAttributeArray(texcoordLocation);
+    program->setAttributeBuffer(texcoordLocation, GL_FLOAT, offset, 2, sizeof(VertexData));
+
+    if(bTess)
+    {
+        gl->glPatchParameteri(GL_PATCH_VERTICES, 3);
+        gl->glDrawElements(GL_PATCHES, mesh->indiceNum, GL_UNSIGNED_SHORT, nullptr);
+    }
+    else
+    {
+        gl->glDrawElements(GL_TRIANGLES, mesh->indiceNum, GL_UNSIGNED_SHORT, nullptr);
+    }
+}
+
+void GeometryEngine::processMesh(vector<VertexData>& vertices, vector<GLushort>& indices, aiMesh *mesh)
+{
+    for(unsigned int i = 0; i < mesh->mNumVertices; i++)
+    {
+        VertexData vertex;
+        if(mesh->mVertices)
+        {
+            vertex.position = QVector3D(mesh->mVertices[i].x,mesh->mVertices[i].y,mesh->mVertices[i].z);
+        }
+        if(mesh->mTextureCoords[0])
+        {
+            vertex.texcoord = QVector2D(mesh->mTextureCoords[0][i].x,mesh->mTextureCoords[0][i].y);
+        }
+        if(mesh->mNormals)
+        {
+            vertex.normal = QVector3D(mesh->mNormals[i].x,mesh->mNormals[i].y,mesh->mNormals[i].z);
+            vertex.normal.normalized();
+        }
+        if(mesh->mTangents)
+        {
+            vertex.tangent = QVector3D(mesh->mTangents[i].x,mesh->mTangents[i].y,mesh->mTangents[i].z);
+        }
+        vertices.push_back(vertex);
+    }
+
+    for(unsigned int i = 0; i < mesh->mNumFaces; i++)
+    {
+        aiFace face = mesh->mFaces[i];
+        for(unsigned int j = 0; j < face.mNumIndices; j++)
+        {
+            indices.push_back(static_cast<GLushort>(face.mIndices[j]));
+        }
+    }
+}
+
+void GeometryEngine::processNode(vector<VertexData>& vertices, vector<GLushort>& indices, aiNode *node, const aiScene *scene)
+{
+    // process all the node's meshes (if any)
+    for(unsigned int i = 0; i < node->mNumMeshes; i++)
+    {
+        aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
+        processMesh(vertices, indices, mesh);
+    }
+    // then do the same for each of its children
+    for(unsigned int i = 0; i < node->mNumChildren; i++)
+    {
+        processNode(vertices, indices, node->mChildren[i], scene);
+    }
 }
 
 void GeometryEngine::initPlaneGeometry()
@@ -60,11 +175,8 @@ void GeometryEngine::initPlaneGeometry()
         CalNormalAndTangent(Vertices[Indices[3 * i]],Vertices[Indices[3 * i + 1]],Vertices[Indices[3 * i + 2]]);
     }
 
-    planeArrayBuf.bind();
-    planeArrayBuf.allocate(Vertices, 4 * sizeof(VertexData));
-
-    planeIndexBuf.bind();
-    planeIndexBuf.allocate(Indices, 6 * sizeof(GLushort));
+    planeBuffer.Init(Vertices, 4);
+    planeBuffer.Init(Indices, 6);
 }
 
 
@@ -125,12 +237,8 @@ void GeometryEngine::initSphereGeometry()
         CalNormalAndTangent(Vertices[Indices[3 * i]],Vertices[Indices[3 * i + 1]],Vertices[Indices[3 * i + 2]]);
     }
 
-    sphereArrayBuf.bind();
-    sphereArrayBuf.allocate(Vertices.data(), Vertices.size() * sizeof(VertexData));
-
-    sphereIndexBuf.bind();
-    sphereIndexBuf.allocate(Indices.data(), Indices.size() * sizeof(GLushort));
-    qDebug() << Indices.size();
+    sphereBuffer.Init(Vertices.data(), Vertices.size());
+    sphereBuffer.Init(Indices.data(), Indices.size());
 }
 
 
@@ -183,21 +291,15 @@ void GeometryEngine::initCubeGeometry()
         CalNormalAndTangent(Vertices[Indices[3 * i]],Vertices[Indices[3 * i + 1]],Vertices[Indices[3 * i + 2]]);
     }
 
-    cubeArrayBuf.bind();
-    cubeArrayBuf.allocate(Vertices, 24 * sizeof(VertexData));
-
-    cubeIndexBuf.bind();
-    cubeIndexBuf.allocate(Indices, 36 * sizeof(GLushort));
-
+    cubeBuffer.Init(Vertices, 24);
+    cubeBuffer.Init(Indices, 36);
 }
-
 
 void GeometryEngine::drawCube(QOpenGLShaderProgram *program, bool bTess)
 {
     auto gl = QOpenGLContext::currentContext()->extraFunctions();
 
-    cubeArrayBuf.bind();
-    cubeIndexBuf.bind();
+    cubeBuffer.bind();
 
     if(bTess)
         gl->glPatchParameteri(GL_PATCH_VERTICES, 3);
@@ -241,8 +343,7 @@ void GeometryEngine::drawPlane(QOpenGLShaderProgram *program, bool bTess)
 {
     auto gl = QOpenGLContext::currentContext()->extraFunctions();
 
-    planeArrayBuf.bind();
-    planeIndexBuf.bind();
+    planeBuffer.bind();
 
     int offset = 0;
 
@@ -286,9 +387,7 @@ void GeometryEngine::drawSphere(QOpenGLShaderProgram* program, bool bTess)
 {
     auto gl = QOpenGLContext::currentContext()->extraFunctions();
 
-    sphereArrayBuf.bind();
-    sphereIndexBuf.bind();
-
+    sphereBuffer.bind();
 
     int offset = 0;
     int vertexLocation = program->attributeLocation("a_position");
@@ -324,6 +423,43 @@ void GeometryEngine::drawSphere(QOpenGLShaderProgram* program, bool bTess)
     }
 }
 
+
+void GeometryEngine::CalTangent(VertexData& vertex0, VertexData& vertex1, VertexData& vertex2)
+{
+    float u0 = vertex0.texcoord.x();
+    float v0 = vertex0.texcoord.y();
+
+    float u1 = vertex1.texcoord.x();
+    float v1 = vertex1.texcoord.y();
+
+    float u2 = vertex2.texcoord.x();
+    float v2 = vertex2.texcoord.y();
+
+    float t1 = u1 - u0;
+    float b1 = v1 - v0;
+
+    float t2 = u2 - u0;
+    float b2 = v2 - v0;
+
+    QVector3D e0 = vertex1.position - vertex0.position;
+    QVector3D e1 = vertex2.position - vertex0.position;
+
+    float k = t1 * b2 - b1 * t2;
+
+    QVector3D tangent;
+    tangent = k * QVector3D(b2 * e0.x() - b1 * e1.x(),b2 * e0.y() - b1 * e1.y(),b2 * e0.z() - b1 * e1.z());
+
+    QVector<VertexData*> vertexArr = { &vertex0, &vertex1, &vertex2};
+    QVector<int> adjoinPlane;
+    adjoinPlane.resize(vertexArr.size());
+    for(int i = 0;i < vertexArr.size();i++)
+    {
+        adjoinPlane[i]++;
+        float ratio = 1.0f / adjoinPlane[i];
+        vertexArr[i]->tangent = vertexArr[i]->tangent * (1 - ratio) + tangent * ratio;
+        vertexArr[i]->tangent.normalize();
+    }
+}
 
 
 void GeometryEngine::CalNormalAndTangent(VertexData& vertex0, VertexData& vertex1, VertexData& vertex2)
