@@ -40,6 +40,7 @@ public:
     virtual void         UpdateLocation();
     virtual void         Create() = 0;
     virtual void         Render() { }
+    virtual void         DecalRender() { }
     virtual void         SecondRender() { }
     virtual void         LateRender() { }
     virtual void         Draw(bool bTess = false);

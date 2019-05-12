@@ -24,7 +24,8 @@ SOURCES += main.cpp \
     noise.cpp \
     volumecloud.cpp \
     resourceinfo.cpp \
-    volumecloudwidget.cpp
+    decal.cpp \
+    decalwidget.cpp
 
 SOURCES += \
     mainwidget.cpp \
@@ -54,7 +55,8 @@ HEADERS += \
     noise.h \
     volumecloud.h \
     resourceinfo.h \
-    volumecloudwidget.h
+    decal.h \
+    decalwidget.h
 
 RESOURCES += \
     shaders.qrc \

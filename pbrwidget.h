@@ -4,7 +4,6 @@
 #include "rendercommon.h"
 #include "baseobjectwidget.h"
 
-class Object;
 class CPBRWidget : public CBaseObjectWidget
 {
     Q_OBJECT
@@ -22,8 +21,9 @@ private:
     DECLARE_CHECKBOX(bBloom)
     DECLARE_CHECKBOX(bSSR)
     DECLARE_CHECKBOX(bFire)
+    DECLARE_CHECKBOX(bSSS)
 public:
-    void OnSelectedObject(Object* obj);
+    void OnSelectedObject(class Object* obj);
 };
 
 

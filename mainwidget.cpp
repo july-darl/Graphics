@@ -2,10 +2,10 @@
 #include "openglwidget.h"
 #include "lightwidget.h"
 #include "outlinewidget.h"
-#include "pbrwidget.h"
 #include "environmentwidget.h"
 #include "baseobjectwidget.h"
-#include "volumecloudwidget.h"
+#include "decalwidget.h"
+#include "pbrwidget.h"
 #include <QHBoxLayout>
 //#include <qDebug>
 
@@ -21,7 +21,7 @@ MainWidget::MainWidget(QWidget *parent)
     pbrWidget           = new CPBRWidget();
     environmentWidget   = new CEnvironmentWidget();
     baseWidget          = new CBaseObjectWidget();
-    volumecloudWidget   = new CVolumeCloudWidget();
+    decalWidget         = new CDecalWidget();
 
     hlayout->addWidget(outlineWidget,1);
     hlayout->addWidget(openGLWidget, 5);
@@ -48,8 +48,8 @@ QWidget* MainWidget::GetWidget(EWindowName widget)
         return environmentWidget;
     case BASE_WIDGET:
         return baseWidget;
-    case VOLUMECLOUD_WIDGET:
-        return volumecloudWidget;
+    case DECAL_WIDGET:
+        return decalWidget;
     }
     return nullptr;
 }
@@ -94,9 +94,9 @@ void MainWidget::SetActiveWindow(EWindowName widget, void* param/* = nullptr*/)
         pWidget->OnSelectedObject(object);
         break;
     }
-    case VOLUMECLOUD_WIDGET:
+    case DECAL_WIDGET:
     {
-        CVolumeCloudWidget* pWidget = static_cast<CVolumeCloudWidget*>(selectedWidget);
+        CDecalWidget* pWidget = static_cast<CDecalWidget*>(selectedWidget);
         Object* object = static_cast<Object*>(param);
         pWidget->OnSelectedObject(object);
         break;

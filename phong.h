@@ -24,6 +24,7 @@ public:
     bool        bFire = false;
     bool        bBloom = false;
     bool        bSSR = false;
+    bool        bSSS = false;
 
     Vector3f    color    = Vector3f(1,1,1);
     void        SetAlbedo(const QString& path);

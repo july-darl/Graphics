@@ -21,6 +21,10 @@ void Phong::Render()
     {
         mode += 2;
     }
+    if(bSSS)
+    {
+        mode += 4;
+    }
 
     program->bind();
 

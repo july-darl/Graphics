@@ -14,6 +14,7 @@
 #include <QFile>
 #include <QDateTime>
 #include "noise.h"
+#include "decal.h"
 ObjectInfo* ObjectInfo::objInfo = nullptr;
 
 void Object::Draw(bool bTess)
@@ -229,6 +230,15 @@ void ObjectInfo::Load()
                         }
 
                     }
+                    else if(type == "Decal")
+                    {
+                        QString size = element.attribute("size");
+                        Decal* decal = static_cast<Decal*>(obj);
+                        if(!size.isEmpty())
+                        {
+                            decal->decalSize = atof(size.toStdString().c_str());
+                        }
+                    }
                 }
             }
         }
@@ -323,6 +333,16 @@ void ObjectInfo::Render()
             vecObj[i]->Draw();
         }
     }
+
+    // 贴花渲染
+    for(size_t i = 0;i < vecObj.size(); i++)
+    {
+        if(vecObj[i]->bRender)
+        {
+            vecObj[i]->DecalRender();
+        }
+    }
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     auto bloomBuffer = CResourceInfo::Inst()->CreateFrameBuffer("Bloom",screenX,screenY);
     glBindFramebuffer(GL_FRAMEBUFFER, bloomBuffer->frameBuffer);

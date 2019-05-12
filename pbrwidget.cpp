@@ -17,6 +17,7 @@ CPBRWidget::CPBRWidget()
     bBloomInit("开启bloom");
     bSSRInit("开启SSR");
     bFireInit("OnFire");
+    bSSSInit("SSS");
 
     vlayout->addStretch(static_cast<int>((height() * 0.8)));
 }
@@ -39,4 +40,5 @@ void CPBRWidget::OnSelectedObject(Object* obj)
     bBloomSetData(&p->bBloom);
     bSSRSetData(&p->bSSR);
     bFireSetData(&p->bFire);
+    bSSSSetData(&p->bSSS);
 }

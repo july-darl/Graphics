@@ -44,5 +44,7 @@
         <file>test.tesh</file>
         <file>fire.vsh</file>
         <file>fire.fsh</file>
+        <file>decal.fsh</file>
+        <file>decal.vsh</file>
     </qresource>
 </RCC>

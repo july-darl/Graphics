@@ -60,9 +60,9 @@ void OutlineWidget::OnClickItem(QTreeWidgetItem* item ,int)
         {
             emit(ActiveWindow(PBR_WIDGET,data));
         }
-        else if(obj->type == "VolumeCloud")
+        else if(obj->type == "Decal")
         {
-            emit(ActiveWindow(VOLUMECLOUD_WIDGET,data));
+            emit(ActiveWindow(DECAL_WIDGET,data));
         }
         else
         {
@@ -96,6 +96,21 @@ void OutlineWidget::InitParam()
             for(size_t i = 0;i < count;i++)
             {
                 Object* obj = ObjectInfo::Inst()->GetObject(i);
+                if(obj->type == "Decal") continue;
+                QTreeWidgetItem* childItem = new QTreeWidgetItem(item);
+                QVariant var;
+                var.setValue(static_cast<void*>(obj));
+                childItem->setData(0,1,var);
+                childItem->setText(0,QString::fromStdString(obj->GetName()));
+            }
+        }
+        else if(item->text(0) == "贴花")
+        {
+            size_t count = static_cast<size_t>(ObjectInfo::Inst()->GetObjectCount());
+            for(size_t i = 0;i < count;i++)
+            {
+                Object* obj = ObjectInfo::Inst()->GetObject(i);
+                 if(obj->type != "Decal") continue;
                 QTreeWidgetItem* childItem = new QTreeWidgetItem(item);
                 QVariant var;
                 var.setValue(static_cast<void*>(obj));

@@ -3,23 +3,25 @@
 
 #include <QWidget>
 
+
 enum EWindowName
 {
     LIGHT_WIDGET,
     PBR_WIDGET,
     ENVIRONMENT_WIDGET,
     BASE_WIDGET,
-    VOLUMECLOUD_WIDGET,
+    DECAL_WIDGET,
 };
 
 class COpenGLWidget;
 class CLightWidget;
 class OutlineWidget;
-class CPBRWidget;
 class QHBoxLayout;
 class CEnvironmentWidget;
 class CBaseObjectWidget;
-class CVolumeCloudWidget;
+class CPBRWidget;
+class CDecalWidget;
+
 class MainWidget : public QWidget
 {
     Q_OBJECT
@@ -30,7 +32,7 @@ public:
 private:
     QHBoxLayout*        hlayout = nullptr;
 
-    CVolumeCloudWidget* volumecloudWidget = nullptr;
+    CDecalWidget*       decalWidget = nullptr;
     COpenGLWidget*      openGLWidget = nullptr;
     CLightWidget*       lightWidget = nullptr;
     OutlineWidget*      outlineWidget = nullptr;
