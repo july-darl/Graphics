@@ -83,6 +83,30 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
     return ggx1 * ggx2;
 }
 
+float RadicalInverse_VdC(uint bits)
+{
+    bits = (bits << 16u) | (bits >> 16u);
+    bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
+    bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
+    bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
+    bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
+    return float(bits) * 2.3283064365386963e-10; // / 0x100000000
+}
+
+vec2 Hammersley(uint i, uint N)
+{
+    return vec2(float(i)/float(N), RadicalInverse_VdC(i));
+}
+
+float BSSRDF(float a, float A, float ld)
+{
+    float e = 3 * (1 - a);
+    float F = a/2 *(1 + exp(-4.0/3.0 * A * sqrt(e))) * exp(-e);
+
+    float d = ld/(3.5 + 100 * pow(A - 0.33, 4));
+
+    return 0;
+}
 
 vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
 {
@@ -237,6 +261,11 @@ bool UseSSR(float id)
 bool UseBloom(float id)
 {
     return abs(100 * id - 2) < 0.01;
+}
+
+bool UseSSS(float id)
+{
+    return abs(100 * id - 4) < 0.01;
 }
 
 float distance(vec3 p)
@@ -523,7 +552,6 @@ void main(void)
         vec3 viewDir = normalize(cameraPos - worldPos);
         vec3 albedo = texture(Color, v_texcoord).xyz;
 
-        // Calculate Snow_D
         if(bSnow)
         {
             float coverRatio = GetSnowCoverRatio(vec4(worldPos,1));
@@ -629,31 +657,41 @@ void main(void)
         F0 = mix(F0,albedo,metal);
 
         vec3 Lo = vec3(0.0);
-        for(int i = 0; i < 5; i++)
+        if(UseSSS(id))
         {
-            vec3 dis = lightPos[i] - worldPos;
-            float dis2 = dis.x * dis.x + dis.y * dis.y + dis.z * dis.z;
+            for(int i = 0;i <30;i++)
+            {
+               // vec3 pos =
+            }
+        }
+        else
+        {
+            for(int i = 0; i < 5; i++)
+            {
+                vec3 dis = lightPos[i] - worldPos;
+                float dis2 = dis.x * dis.x + dis.y * dis.y + dis.z * dis.z;
 
-            float attenuation = 1.0 / (Kq[i] * dis2);
+                float attenuation = 1.0 / (Kq[i] * dis2);
 
-            vec3 radiance = lightColor[i] * attenuation;
-            vec3 lightDir = normalize( lightPos[i] - worldPos );
-            vec3 halfDir = normalize(lightDir + viewDir);
+                vec3 radiance = lightColor[i] * attenuation;
+                vec3 lightDir = normalize( lightPos[i] - worldPos );
+                vec3 halfDir = normalize(lightDir + viewDir);
 
-            float NDF = DistributionGGX(normal,halfDir,rough);
-            float G   = GeometrySmith(normal,viewDir,lightDir,rough);
-            vec3 F    = fresnelSchlickRoughness(max(dot(halfDir,viewDir),0.0),F0, rough);
+                float NDF = DistributionGGX(normal,halfDir,rough);
+                float G   = GeometrySmith(normal,viewDir,lightDir,rough);
+                vec3 F    = fresnelSchlickRoughness(max(dot(halfDir,viewDir),0.0),F0, rough);
 
-            vec3 kS = F;
-            vec3 kD = vec3(1.0) - kS;
-            kD *= 1.0 - metal;
+                vec3 kS = F;
+                vec3 kD = vec3(1.0) - kS;
+                kD *= 1.0 - metal;
 
-            vec3 nominator = NDF * G * F;
-            float denominator = 4.0 * max(dot(normal,viewDir), 0.0) * max(dot(normal,lightDir),0.0) + 0.001;
-            vec3 specular = nominator / denominator;
+                vec3 nominator = NDF * G * F;
+                float denominator = 4.0 * max(dot(normal,viewDir), 0.0) * max(dot(normal,lightDir),0.0) + 0.001;
+                vec3 specular = nominator / denominator;
 
-            float NdotL = max(dot(normal,lightDir), 0.0);
-            Lo += (kD * albedo / PI + specular) * radiance * NdotL;
+                float NdotL = max(dot(normal,lightDir), 0.0);
+                Lo += (kD * albedo / PI + specular) * radiance * NdotL;
+            }
         }
 
 

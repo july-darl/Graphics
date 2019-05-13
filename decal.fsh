@@ -67,7 +67,7 @@ void main(void)
 
     texcoord = clamp(texcoord,0,1);
     vec4 color = texture2D(Image, texcoord);
-    if(color.a == 1)
+    if(abs(color.a - 1) < 0.01)
     {
         Color = color;//vec4(worldNormal,1);
         Normal = vec4(1,1,1,1);
