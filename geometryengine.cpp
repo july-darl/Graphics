@@ -1,5 +1,6 @@
 
 #include "geometryengine.h"
+#include "resourceinfo.h"
 #include <QVector2D>
 #include <QVector3D>
 #include <QVector>
@@ -17,9 +18,9 @@ GeometryEngine::~GeometryEngine()
 
 }
 
-bool GeometryEngine::loadObj(string path)
+bool GeometryEngine::loadObj(string path, Model*& pModel)
 {
-    if(mapMesh.find(path) != mapMesh.end())
+    if(mapModel.find(path) != mapModel.end())
     {
         return true;
     }
@@ -34,35 +35,14 @@ bool GeometryEngine::loadObj(string path)
     }
     string directory = path.substr(0, path.find_last_of('/'));
 
-    vector<VertexData> vertices;
-    vector<GLushort> indices;
-
-    processNode(vertices, indices, scene->mRootNode, scene);
-    for(size_t i = 0;i < indices.size() / 3; i++)
-    {
-        CalTangent(vertices[indices[3 * i]],vertices[indices[3 * i + 1]],vertices[indices[3 * i + 2]]);
-    }
-
-    MeshBuffer* mesh = new MeshBuffer();
-    mesh->Init(vertices.data(),static_cast<int>(vertices.size()));
-    mesh->Init(indices.data(),static_cast<int>(indices.size()));
-
-    mapMesh[path] = mesh;
+    processNode(path, scene->mRootNode, scene);
+    pModel = &mapModel[path];
     return true;
 }
 
-void GeometryEngine::drawObj(string path,QOpenGLShaderProgram* program,bool bTess)
+void GeometryEngine::drawObj(MeshBuffer* meshBuffer, QOpenGLShaderProgram* program,bool bTess)
 {
-    if(mapMesh.find(path) == mapMesh.end())
-    {
-        if(!loadObj(path))
-        {
-            return;
-        }
-    }
-
-    MeshBuffer* mesh = mapMesh[path];
-    mesh->bind();
+    meshBuffer->bind();
 
     auto gl = QOpenGLContext::currentContext()->extraFunctions();
 
@@ -93,15 +73,35 @@ void GeometryEngine::drawObj(string path,QOpenGLShaderProgram* program,bool bTes
     if(bTess)
     {
         gl->glPatchParameteri(GL_PATCH_VERTICES, 3);
-        gl->glDrawElements(GL_PATCHES, mesh->indiceNum, GL_UNSIGNED_SHORT, nullptr);
+        gl->glDrawElements(GL_PATCHES, meshBuffer->indiceNum, GL_UNSIGNED_SHORT, nullptr);
     }
     else
     {
-        gl->glDrawElements(GL_TRIANGLES, mesh->indiceNum, GL_UNSIGNED_SHORT, nullptr);
+        gl->glDrawElements(GL_TRIANGLES, meshBuffer->indiceNum, GL_UNSIGNED_SHORT, nullptr);
     }
 }
 
-void GeometryEngine::processMesh(vector<VertexData>& vertices, vector<GLushort>& indices, aiMesh *mesh)
+
+void GeometryEngine::drawObj(string path,QOpenGLShaderProgram* program,bool bTess)
+{
+    Model* pModel;
+    if(mapModel.find(path) == mapModel.end())
+    {
+        if(!loadObj(path, pModel))
+        {
+            return;
+        }
+    }
+
+    auto vecMesh = mapModel[path];
+    for(size_t i = 0;i < vecMesh.Count();i++)
+    {
+        auto meshBuffer = vecMesh.GetMeshBuffer(i);
+        drawObj(meshBuffer,program, bTess);
+    }
+}
+
+void GeometryEngine::processMesh(vector<VertexData>& vertices, vector<GLushort>& indices, QOpenGLTexture*& albedo, aiMesh *mesh, const aiScene *scene)
 {
     for(unsigned int i = 0; i < mesh->mNumVertices; i++)
     {
@@ -134,20 +134,50 @@ void GeometryEngine::processMesh(vector<VertexData>& vertices, vector<GLushort>&
             indices.push_back(static_cast<GLushort>(face.mIndices[j]));
         }
     }
+
+    aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
+    for(unsigned int i = 0; i < material->GetTextureCount(aiTextureType_DIFFUSE); i++)
+    {
+        aiString str;
+        material->GetTexture(aiTextureType_DIFFUSE, i, &str);
+        qDebug() << i << str.C_Str();
+        albedo = CResourceInfo::Inst()->CreateTexture(str.C_Str());
+    }
 }
 
-void GeometryEngine::processNode(vector<VertexData>& vertices, vector<GLushort>& indices, aiNode *node, const aiScene *scene)
+
+
+void GeometryEngine::processNode(const string& path, aiNode *node, const aiScene *scene)
 {
     // process all the node's meshes (if any)
     for(unsigned int i = 0; i < node->mNumMeshes; i++)
     {
-        aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
-        processMesh(vertices, indices, mesh);
+        vector<VertexData> vertices;
+        vector<GLushort> indices;
+        QOpenGLTexture* albedo = nullptr;
+        aiMesh *aimesh = scene->mMeshes[node->mMeshes[i]];
+        processMesh(vertices, indices, albedo, aimesh, scene);
+
+        MeshBuffer* meshBuffer = new MeshBuffer();
+        for(size_t i = 0;i < indices.size() / 3; i++)
+        {
+            CalTangent(vertices[indices[3 * i]],vertices[indices[3 * i + 1]],vertices[indices[3 * i + 2]]);
+        }
+
+        meshBuffer->Init(vertices.data(),static_cast<int>(vertices.size()));
+        meshBuffer->Init(indices.data(),static_cast<int>(indices.size()));
+
+        Mesh* mesh = new Mesh();
+        mesh->name = node->mName.C_Str();
+        mesh->buffer = meshBuffer;
+        mesh->albedo = albedo;
+        mapModel[path].Push(mesh);
     }
+
     // then do the same for each of its children
     for(unsigned int i = 0; i < node->mNumChildren; i++)
     {
-        processNode(vertices, indices, node->mChildren[i], scene);
+        processNode(path, node->mChildren[i], scene);
     }
 }
 

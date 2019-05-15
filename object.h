@@ -32,6 +32,7 @@ public:
     const string&        GetName() { return m_strName; }
     void                 SetName(const string& name) { m_strName = name;}
     void                 SetObjName(const string& name) { m_strObjName = name;}
+    const string&        GetObjName() { return m_strObjName; }
 
     void                 GenShadowMap();
     void                 GenSnowDepth();

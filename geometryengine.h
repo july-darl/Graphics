@@ -7,6 +7,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <QOpenGLTexture>
 
 using namespace std;
 struct VertexData
@@ -57,14 +58,36 @@ struct MeshBuffer
     }
 };
 
+struct Mesh
+{
+    string name;
+    MeshBuffer* buffer = nullptr;
+    QOpenGLTexture* albedo;
+};
+
+class Model
+{
+private:
+    vector<Mesh*> vecMesh;
+public:
+    void Push(Mesh* mesh)
+    {
+        vecMesh.emplace_back(mesh);
+    }
+    MeshBuffer* GetMeshBuffer(size_t idx) { return vecMesh[idx]->buffer;}
+    Mesh* GetMesh(size_t idx) { return vecMesh[idx];}
+    size_t Count() { return vecMesh.size();}
+};
+
 class GeometryEngine
 {
 public:
     GeometryEngine();
     virtual ~GeometryEngine();
 
-    bool loadObj(string path);
+    bool loadObj(string path, Model*& pModel);
     void drawObj(string path,QOpenGLShaderProgram* program,bool bTess = false);
+    void drawObj(MeshBuffer* meshBuffer, QOpenGLShaderProgram* program,bool bTess = false);
 
     void drawPlane(QOpenGLShaderProgram *program,bool bTess = false); // 曲面细分
     void drawCube(QOpenGLShaderProgram* program,bool bTess = false);
@@ -74,8 +97,8 @@ public:
     void CalNormalAndTangent(VertexData& vertex1, VertexData& vertex2,
                                          VertexData& vertex3);
 private:
-    void processNode(vector<VertexData>& vertices, vector<GLushort>& indices, aiNode *node, const aiScene *scene);
-    void processMesh(vector<VertexData>& vertices, vector<GLushort>& indices, aiMesh *mesh);
+    void processNode(const string& path, aiNode *node, const aiScene *scene);
+    void processMesh(vector<VertexData>& vertices, vector<GLushort>& indices, QOpenGLTexture*& albedo, aiMesh *mesh, const aiScene *scen);
 
     void initPlaneGeometry();
     void initSphereGeometry();
@@ -85,7 +108,7 @@ private:
     MeshBuffer sphereBuffer;
     MeshBuffer cubeBuffer;
 
-    map<string, MeshBuffer*> mapMesh;
+    map<string, Model> mapModel;
 };
 
 #endif // GEOMETRYENGINE_H

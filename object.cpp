@@ -154,6 +154,8 @@ void ObjectInfo::Load()
             QString scale    = element.attribute("scale");
             QString bShadow  = element.attribute("bCastShadow");
             QString shape    = element.attribute("shape");
+            QString bShow    = element.attribute("bShow");
+
 
             qDebug() << name;
             if(!type.isEmpty())
@@ -176,13 +178,19 @@ void ObjectInfo::Load()
                     else
                     {
                         obj->shape = SHA_Obj;
-                        obj->SetObjName(shape.toStdString());
+                        string name = shape.toStdString();
+                        obj->SetObjName(name);
                     }
                     obj->SetName(name.toStdString());
                     obj->bCastShadow = bShadow != "0";
                     GetVec3FromString(position.toStdString().c_str(),obj->position.x,obj->position.y,obj->position.z);
                     GetVec3FromString(rotation.toStdString().c_str(),obj->rotation.x,obj->rotation.y,obj->rotation.z);
                     GetVec3FromString(scale.toStdString().c_str(),obj->scale.x,obj->scale.y,obj->scale.z);
+
+                    if(!bShow.isEmpty())
+                    {
+                        obj->bRender = bShow != "0";
+                    }
 
                     if(type == "Billboard")
                     {
@@ -228,6 +236,9 @@ void ObjectInfo::Load()
                         {
                             phong->bSSR = bSSR == "1";
                         }
+
+                        if(phong->shape == SHA_Obj)
+                            RenderCommon::Inst()->GetGeometryEngine()->loadObj(phong->GetObjName(), phong->pModel);
 
                     }
                     else if(type == "Decal")
@@ -330,7 +341,6 @@ void ObjectInfo::Render()
         if(vecObj[i]->bRender)
         {
             vecObj[i]->Render();
-            vecObj[i]->Draw();
         }
     }
 

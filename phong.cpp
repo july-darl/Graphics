@@ -38,40 +38,56 @@ void Phong::Render()
     program->setUniformValue("metal",metal);
     program->setUniformValue("id",mode);
 
-
-    if(albedo != 0)
-    {
-        gl->glActiveTexture(GL_TEXTURE0);
-        gl->glBindTexture(GL_TEXTURE_2D, albedo);
-        program->setUniformValue("albedo", 0);
-        program->setUniformValue("color",QVector3D(-1,-1,-1));
-    }
-    else
-    {
-        program->setUniformValue("color",QVector3D(color.x,color.y,color.z));
-    }
-
-    if(normal != 0)
-    {
-        gl->glActiveTexture(GL_TEXTURE1);
-        gl->glBindTexture(GL_TEXTURE_2D, normal);
-        program->setUniformValue("normal", 1);
-        program->setUniformValue("bUseNormalMap", true);
-    }
-    else
-    {
-        program->setUniformValue("bUseNormalMap", false);
-    }
-
-    if(maskTex != 0)
-    {
-        gl->glActiveTexture(GL_TEXTURE2);
-        gl->glBindTexture(GL_TEXTURE_2D, maskTex);
-        program->setUniformValue("mask", 2);
-    }
-
     program->setUniformValue("rough", rough);
     program->setUniformValue("ao", ao);
+
+    if(shape == SHA_Obj && pModel)
+    {
+        for(size_t i = 0;i < pModel->Count(); i++)
+        {
+            auto mesh = pModel->GetMesh(i);
+            if(mesh->buffer)
+            {
+                if( mesh->albedo)
+                {
+                    gl->glActiveTexture(GL_TEXTURE0);
+                    mesh->albedo->bind();
+                    program->setUniformValue("albedo", 0);
+                    program->setUniformValue("color",QVector3D(-1,-1,-1));
+                }
+
+                RenderCommon::Inst()->GetGeometryEngine()->drawObj(mesh->buffer, program);
+            }
+        }
+    }
+    else
+    {
+        if(albedo != 0)
+        {
+            gl->glActiveTexture(GL_TEXTURE0);
+            gl->glBindTexture(GL_TEXTURE_2D, albedo);
+            program->setUniformValue("albedo", 0);
+            program->setUniformValue("color",QVector3D(-1,-1,-1));
+        }
+        else
+        {
+            program->setUniformValue("color",QVector3D(color.x,color.y,color.z));
+        }
+
+        if(normal != 0)
+        {
+            gl->glActiveTexture(GL_TEXTURE1);
+            gl->glBindTexture(GL_TEXTURE_2D, normal);
+            program->setUniformValue("normal", 1);
+            program->setUniformValue("bUseNormalMap", true);
+        }
+        else
+        {
+            program->setUniformValue("bUseNormalMap", false);
+        }
+        Draw(program, false);
+    }
+
 }
 
 void Phong::SecondRender()
@@ -110,10 +126,7 @@ void Phong::SecondRender()
         bloomProgram->bind();
 
         gl->glEnable(GL_BLEND);
-      //  gl->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         gl->glBlendFunc(GL_ONE, GL_ONE);
-       // gl->glBlendFunc(GL_SRC_ALPHA, GL_DST_ALPHA);
-       // gl->glDepthMask(GL_FALSE);
 
         gl->glActiveTexture(GL_TEXTURE2);
         CResourceInfo::Inst()->CreateTexture("Noise2.TGA")->bind();
@@ -140,8 +153,14 @@ void Phong::SecondRender()
 
     if(bFire)
     {
-        Draw(bloomProgram, true);
-       // gl->glDepthMask(GL_TRUE);
+        if(shape == SHA_Obj && pModel)
+        {
+            RenderCommon::Inst()->GetGeometryEngine()->drawObj(m_strObjName,bloomProgram,true);
+        }
+        else
+        {
+            Draw(bloomProgram, true);
+        }
         gl->glDisable(GL_BLEND);
     }
     else

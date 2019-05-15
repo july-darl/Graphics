@@ -98,37 +98,15 @@ vec2 Hammersley(uint i, uint N)
     return vec2(float(i)/float(N), RadicalInverse_VdC(i));
 }
 
-vec3 ImportanceSampleSS(vec2 Xi, vec3 N, float roughness)
+
+vec3 BSSRDF(vec3 a, vec3 A)
 {
-    float a = roughness * roughness;
+    vec3 e = 3 * (1 - a);
+    vec3 F = a/2 *(1 + exp(-4.0/3.0 * A * sqrt(e))) * exp(-e);
 
-    float phi = 2.0 * PI * Xi.x;
-    float cosTheta = sqrt((1.0 - Xi.y) / (1.0 + (a*a - 1.0) * Xi.y));
-    float sinTheta = sqrt(1.0 - cosTheta * cosTheta);
+    //float d = ld/(3.5 + 100 * pow(A - 0.33, 4));
 
-    // from spherical coordiantes to cartesion coordinates
-    vec3 H;
-    H.x = cos(phi) * sinTheta;
-    H.y = sin(phi) * sinTheta;
-    H.z = cosTheta;
-
-    // from tangent-space vector to world-space sample vector
-    vec3 up = abs(N.z) < 0.999 ? vec3(0.0,0.0,1.0):vec3(1.0,0.0,.0.0);
-    vec3 tangent = normalize(cross(up, N));
-    vec3 bitangent = cross(N, tangent);
-
-    vec3 sampleVec = tangent * H.x + bitangent * H.y + N * H.z;
-    return normalize(sampleVec);
-}
-
-float BSSRDF(float a, float A, float ld)
-{
-    float e = 3 * (1 - a);
-    float F = a/2 *(1 + exp(-4.0/3.0 * A * sqrt(e))) * exp(-e);
-
-    float d = ld/(3.5 + 100 * pow(A - 0.33, 4));
-
-    return 0;
+    return F;
 }
 
 vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
@@ -365,7 +343,7 @@ vec3 GetBloomColor(vec2 uv, bool bBloom)
     {
         vec3 finalColor = texture(Bloom, uv).xyz;
         finalColor *= 10;
-        finalColor = vec3(1.0) - exp(-finalColor * 5.0);
+        finalColor = vec3(1.0) - exp(-finalColor * 10.0);
         const float gamma = 2.2;
         finalColor = pow(finalColor, vec3(1.0 / gamma));
 
@@ -711,9 +689,17 @@ void main(void)
                 vec3 nominator = NDF * G * F;
                 float denominator = 4.0 * max(dot(normal,viewDir), 0.0) * max(dot(normal,lightDir),0.0) + 0.001;
                 vec3 specular = nominator / denominator;
-
+                vec3 diffuse;
+                if(UseSSS(id))
+                {
+                    diffuse = BSSRDF(albedo,albedo);
+                }
+                else
+                {
+                    diffuse = kD * albedo / PI;
+                }
                 float NdotL = max(dot(normal,lightDir), 0.0);
-                Lo += (kD * albedo / PI + specular) * radiance * NdotL;
+                Lo += (diffuse + specular) * radiance * NdotL;
             }
         }
 

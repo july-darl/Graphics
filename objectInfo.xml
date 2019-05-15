@@ -3,9 +3,9 @@
     <object name = "平面" type = "Phong" shape = "plane" position = "-2,1,-1" rotation = "0,0,0" scale = "1,1,1" bCastShadow = "1" />
     <object name = "球体" type = "Phong" shape = "sphere" position = "0,1,0" rotation = "60,0,0" scale = "1,1,1" bFire="1" bCastShadow = "1" />
     <object name = "立方体" type = "Phong" shape = "cube" position = "1,1,3" rotation = "0,0,0" scale = "1,1,1" bCastShadow = "1" />
-    <object name = "圆环" type = "Phong" shape = "test.obj" position = "-3,1,2" rotation = "0,0,0" scale = "1,1,1" bCastShadow = "1" bSSR = "0" />
+    <object name = "圆环" type = "Phong" shape = "123.obj" position = "-3,0,2" rotation = "0,0,0" scale = "0.2,0.2,0.2" bCastShadow = "1" bSSR = "0" />
     <object name = "地板" type = "Phong" shape = "plane" position = "0,0,0" rotation = "270,0,0" scale = "10,10,1" bCastShadow = "0" bSSR = "0" />
-    <object name = "树叶" type = "Decal" shape = "cube" position = "2,0.6,4.4" rotation = "0,0,0" scale = "0.5,0.5,0.5" bCastShadow = "0" bSSR = "0" size="0.6" decal="" />
+    <object name = "树叶" type = "Decal" shape = "cube" position = "2,0.6,4.4" rotation = "0,0,0" scale = "0.5,0.5,0.5" bCastShadow = "0" bSSR = "0" size="0.6" decal="" bShow="0"/>
     <object name = "天空盒" type = "SkyBox" shape = "cube" position = "0,0,0" rotation = "0,0,0" scale = "4,0.3,4" bCastShadow = "0" />
     <object name = "粒子测试" type = "ParticleEmitter" shape = "sphere" position = "3,4,1" rotation = "0,0,0" scale = "1,1,1" bCastShadow = "0" />
 </objectlist>

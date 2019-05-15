@@ -21,6 +21,8 @@ public:
     QImage      normalImg;
     QImage      maskImg;
 
+    Model*      pModel;
+
     bool        bFire = false;
     bool        bBloom = false;
     bool        bSSR = false;

@@ -62,8 +62,6 @@ RESOURCES += \
     shaders.qrc \
     config.qrc
 
-DLLDESTDIR += bin
-
 INCLUDEPATH += include
 
 LIBS += -L$$PWD/lib/ \
