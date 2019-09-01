@@ -21,7 +21,7 @@ private:
     DECLARE_CHECKBOX(bBloom)
     DECLARE_CHECKBOX(bSSR)
     DECLARE_CHECKBOX(bFire)
-    DECLARE_CHECKBOX(bSSS)
+    DECLARE_CHECKBOX(bXRay)
 public:
     void OnSelectedObject(class Object* obj);
 };

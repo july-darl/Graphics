@@ -600,7 +600,7 @@ void main(void)
                             float newId = texture(Param, uv).w;
                             if(!UseSSR(newId))
                             {
-                                reflectColor = texture(Color, uv).xyz;
+                                reflectColor =  GetGaussColor(uv);
                             }
                             break;
                         }
@@ -630,7 +630,7 @@ void main(void)
                                 float newId = texture(Param, uv).w;
                                 if(!UseSSR(newId))
                                 {
-                                    reflectColor = texture(Color, uv).xyz;
+                                    reflectColor = GetGaussColor(uv);
                                 }
                                 break;
                             }
@@ -751,8 +751,8 @@ void main(void)
     else if(result == vec4(1,1,1,1))
     {
         vec3 bloom_color = GetBloomColor(v_texcoord, UseBloom(id));
-       // fragColor = vec4(bloom_color, 1);
-        fragColor = vec4(texture(Color, v_texcoord).xyz  + bloom_color, 1);
+        vec3 albedo = texture(Color, v_texcoord).xyz;
+        fragColor = vec4(albedo  + bloom_color, 1);
     }
     else
     {
@@ -809,7 +809,7 @@ void main(void)
         density = density/(density + 1);
         vec3 bloom_color = GetBloomColor(v_texcoord, UseBloom(id));
 
-        fragColor = vec4(mix(sky_color,cloud_color,density) + bloom_color,1);
+        fragColor = vec4(mix(sky_color,cloud_color,density*1) + bloom_color,1);
     }
 }
 

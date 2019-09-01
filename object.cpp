@@ -19,7 +19,6 @@ ObjectInfo* ObjectInfo::objInfo = nullptr;
 
 void Object::Draw(bool bTess)
 {
-   // qDebug() << shape;
     switch(shape)
     {
     case SHA_Cube:

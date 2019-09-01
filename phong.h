@@ -26,13 +26,14 @@ public:
     bool        bFire = false;
     bool        bBloom = false;
     bool        bSSR = false;
-    bool        bSSS = false;
+    bool        bXRay = false;
 
     Vector3f    color    = Vector3f(1,1,1);
     void        SetAlbedo(const QString& path);
     void        Create() override;
     void        Render() override;
     void        SecondRender() override;
+    void        DecalRender() override;
 };
 
 #endif // PHONG_H

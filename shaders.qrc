@@ -46,5 +46,7 @@
         <file>fire.fsh</file>
         <file>decal.fsh</file>
         <file>decal.vsh</file>
+        <file>xray.vsh</file>
+        <file>xray.fsh</file>
     </qresource>
 </RCC>

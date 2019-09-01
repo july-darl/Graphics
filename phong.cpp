@@ -21,7 +21,7 @@ void Phong::Render()
     {
         mode += 2;
     }
-    if(bSSS)
+    if(bXRay)
     {
         mode += 4;
     }
@@ -87,7 +87,25 @@ void Phong::Render()
         }
         Draw(program, false);
     }
+}
 
+void Phong::DecalRender()
+{
+    if(bXRay)
+    {
+        QOpenGLFunctions* gl = QOpenGLContext::currentContext()->functions();
+        QOpenGLShaderProgram* program = CResourceInfo::Inst()->CreateProgram("xray.vsh","xray.fsh","xray");
+        program->bind();
+        gl->glDepthFunc(GL_GEQUAL);
+
+        program->setUniformValue("ModelMatrix",modelMatrix);
+        program->setUniformValue("ProjectMatrix",RenderCommon::Inst()->GetProjectMatrix());
+        program->setUniformValue("ViewMatrix", Camera::Inst()->GetViewMatrix());
+
+        Draw(program, false);
+        gl->glDepthFunc(GL_LESS);
+    }
+ //   qDebug() << "DecalRender";
 }
 
 void Phong::SecondRender()
