@@ -22,6 +22,7 @@ private:
     DECLARE_CHECKBOX(bSSR)
     DECLARE_CHECKBOX(bFire)
     DECLARE_CHECKBOX(bXRay)
+    DECLARE_COMBO(renderQueue)
 public:
     void OnSelectedObject(class Object* obj);
 };

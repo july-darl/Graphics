@@ -3,7 +3,7 @@
 #include <QOpenGLShader>
 #include <QOpenGLTexture>
 #include <QOpenGLShaderProgram>
-#include <map>
+#include <unordered_map>
 #include "rendercommon.h"
 
 using namespace std;
@@ -11,14 +11,14 @@ using namespace std;
 class CResourceInfo
 {
 private:
-    map<string, QOpenGLShader*>         mapVShader;
-    map<string, QOpenGLShader*>         mapFShader;
-    map<string, QOpenGLShader*>         mapTCShader;
-    map<string, QOpenGLShader*>         mapTEShader;
+    unordered_map<string, QOpenGLShader*>         mapVShader;
+    unordered_map<string, QOpenGLShader*>         mapFShader;
+    unordered_map<string, QOpenGLShader*>         mapTCShader;
+    unordered_map<string, QOpenGLShader*>         mapTEShader;
 
-    map<string, QOpenGLTexture*>        mapTexture;
-    map<string, QOpenGLShaderProgram*>  mapProgram;
-    map<string, STextureBuffer*>        mapTextureBuffer;
+    unordered_map<string, QOpenGLTexture*>        mapTexture;
+    unordered_map<string, QOpenGLShaderProgram*>  mapProgram;
+    unordered_map<string, STextureBuffer*>        mapTextureBuffer;
 
     CResourceInfo(){}
 

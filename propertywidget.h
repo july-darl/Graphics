@@ -12,6 +12,7 @@
 #include <QImage>
 #include <QOpenGLFunctions>
 #include <QComboBox>
+#include <functional>
 #include "rendercommon.h"
 
 #define DECLARE_SLIDER(name)\
@@ -220,6 +221,21 @@ public:                                                                         
         }                                                                                             \
     }                                                                                                 \
 
+#define DECLARE_COMBO(name)                                                                           \
+protected:                                                                                            \
+    function<void(int)> name##callback;                                                               \
+    QComboBox* name##combo;                                                                           \
+public:                                                                                               \
+    void name##Init(vector<QString>& data,function<void(int)> func)                                   \
+    {                                                                                                 \
+        name##callback = func;                                                                        \
+        name##combo = new QComboBox();                                                                \
+        vlayout->addWidget(name##combo);                                                              \
+        for(size_t i = 0;i < data.size();i++)                                                         \
+        {                                                                                             \
+            name##combo->addItem(QString(data[i]));                                                   \
+        }                                                                                             \
+    }                                                                                                 \
 
 class QVBoxLayout;
 using namespace std;

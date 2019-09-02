@@ -40,7 +40,6 @@ void Object::Draw(bool bTess)
 
 void Object::Draw(QOpenGLShaderProgram* p, bool bTess)
 {
-   // qDebug() << shape;
     switch(shape)
     {
     case SHA_Cube:
