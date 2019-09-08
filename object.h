@@ -54,10 +54,11 @@ public:
 class ObjectInfo : protected QOpenGLFunctions
 {
 private:
-    QOpenGLTexture*      snow_D;
-    QOpenGLTexture*      snow_N;
+    QOpenGLTexture*             snow_D;
+    QOpenGLTexture*             snow_N;
 
-    vector<Object*>      vecObj;
+    map<int, vector<Object*>>   renderQueue;
+    vector<Object*>             vecObj;
 
     static ObjectInfo* objInfo;
 public:
@@ -72,7 +73,7 @@ public:
     int                  GetObjectCount() { return static_cast<int>(vecObj.size());}
     void                 Create();
     void                 Render();
-    Object*              CreateObject(string name);
+    Object*              CreateObject(string name, int queueId = 2000);
     void                 DelayRender();
 private:
     void                 Load();

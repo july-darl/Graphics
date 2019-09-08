@@ -275,7 +275,7 @@ void ObjectInfo::Create()
     snow_N->setWrapMode(QOpenGLTexture::Repeat);
 }
 
-Object* ObjectInfo::CreateObject(string name)
+Object* ObjectInfo::CreateObject(string name, int queueId)
 {
     Object* obj = Helper::Inst()->CreateObject(name);
     if (obj)
@@ -284,6 +284,7 @@ Object* ObjectInfo::CreateObject(string name)
         obj->type = name;
         obj->id = static_cast<int>(vecObj.size());
         vecObj.push_back(obj);
+        renderQueue[queueId].push_back(obj);
     }
     return obj;
 }
@@ -334,11 +335,15 @@ void ObjectInfo::Render()
     glBindFramebuffer(GL_FRAMEBUFFER, gFrameBuffer->frameBuffer);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    for(size_t i = 0;i < vecObj.size(); i++)
+    for(auto& obj : renderQueue)
     {
-        if(vecObj[i]->bRender)
+        auto& vecObj = obj.second;
+        for(size_t i = 0; i < vecObj.size(); i++)
         {
-            vecObj[i]->Render();
+            if(vecObj[i]->bRender)
+            {
+                vecObj[i]->Render();
+            }
         }
     }
 
