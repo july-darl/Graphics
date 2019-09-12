@@ -1,7 +1,8 @@
 #include "environmentwidget.h"
 
 
-CEnvironmentWidget::CEnvironmentWidget()
+CEnvironmentWidget::CEnvironmentWidget(QWidget* parent)
+    :PropertyWidget (parent)
 {
     hdrInit("开启HDR", nullptr);
     gammaInit("开启gamma矫正", nullptr);

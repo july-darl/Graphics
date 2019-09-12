@@ -1,7 +1,8 @@
 #include "propertywidget.h"
 #include <QVBoxLayout>
 
-PropertyWidget::PropertyWidget()
+PropertyWidget::PropertyWidget(QWidget* parent)
+    : QWidget(parent)
 {
     vlayout = new QVBoxLayout;
     setLayout(vlayout);

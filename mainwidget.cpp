@@ -1,4 +1,4 @@
-#include "MainWidget.h"
+#include "mainwidget.h"
 #include "openglwidget.h"
 #include "lightwidget.h"
 #include "outlinewidget.h"
@@ -7,6 +7,7 @@
 #include "decalwidget.h"
 #include "pbrwidget.h"
 #include <QHBoxLayout>
+
 //#include <qDebug>
 
 MainWidget::MainWidget(QWidget *parent)
@@ -14,6 +15,7 @@ MainWidget::MainWidget(QWidget *parent)
 {
     setMinimumSize(600,400);
     resize(1000,700);
+
     hlayout             = new QHBoxLayout();
     openGLWidget        = new COpenGLWidget();
     lightWidget         = new CLightWidget();
@@ -23,16 +25,21 @@ MainWidget::MainWidget(QWidget *parent)
     baseWidget          = new CBaseObjectWidget();
     decalWidget         = new CDecalWidget();
 
-    hlayout->addWidget(outlineWidget,1);
-    hlayout->addWidget(openGLWidget, 5);
-    hlayout->addWidget(environmentWidget, 1);
+    for(size_t i = 0;i < WIDGET_NUM; i++)
+    {
+        scrollArea[i] = new QScrollArea();
+        scrollArea[i]->setWidget(GetWidget(static_cast<EWindowName>(i)));
+    }
+
+    hlayout->addWidget(outlineWidget,2);
+    hlayout->addWidget(openGLWidget, 10);
+    hlayout->addWidget(scrollArea[ENVIRONMENT_WIDGET], 3);
 
     connect(openGLWidget,SIGNAL(OnCreate()),lightWidget,SLOT(InitParam()));
     connect(openGLWidget,SIGNAL(OnCreate()),outlineWidget,SLOT(InitParam()));
-
     connect(outlineWidget,SIGNAL(ActiveWindow(EWindowName,void*)),this,SLOT(SetActiveWindow(EWindowName,void*)));
 
-    activeWidget = environmentWidget;
+    activeWindow = ENVIRONMENT_WIDGET;
     setLayout(hlayout);
 }
 
@@ -50,19 +57,21 @@ QWidget* MainWidget::GetWidget(EWindowName widget)
         return baseWidget;
     case DECAL_WIDGET:
         return decalWidget;
+    default:
+        return nullptr;
     }
-    return nullptr;
 }
 
 void MainWidget::SetActiveWindow(EWindowName widget, void* param/* = nullptr*/)
 {
     QWidget* selectedWidget = GetWidget(widget);
-    if(activeWidget != selectedWidget)
+    if(activeWindow != widget)
     {
-        activeWidget->setParent(nullptr);
-        hlayout->removeWidget(activeWidget);
-        hlayout->addWidget(selectedWidget,1);
-        activeWidget = selectedWidget;
+
+        scrollArea[activeWindow]->setParent(nullptr);
+        hlayout->removeWidget(scrollArea[activeWindow]);
+        hlayout->addWidget(scrollArea[widget], 3);
+        activeWindow = widget;
     }
 
     switch(widget)
@@ -101,5 +110,7 @@ void MainWidget::SetActiveWindow(EWindowName widget, void* param/* = nullptr*/)
         pWidget->OnSelectedObject(object);
         break;
     }
+    default: // do nothing
+        break;
     }
 }

@@ -2,7 +2,8 @@
 #include "object.h"
 #include "phong.h"
 
-CPBRWidget::CPBRWidget()
+CPBRWidget::CPBRWidget(QWidget* parent)
+    : CBaseObjectWidget(parent)
 {
     SetLabel("Attribute");
 

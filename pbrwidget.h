@@ -8,7 +8,7 @@ class CPBRWidget : public CBaseObjectWidget
 {
     Q_OBJECT
 public:
-    CPBRWidget();
+    CPBRWidget(QWidget* parent = nullptr);
 private:
 
     DECLARE_SLIDER(rough)

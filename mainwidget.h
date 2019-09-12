@@ -11,6 +11,7 @@ enum EWindowName
     ENVIRONMENT_WIDGET,
     BASE_WIDGET,
     DECAL_WIDGET,
+    WIDGET_NUM
 };
 
 class COpenGLWidget;
@@ -21,7 +22,7 @@ class CEnvironmentWidget;
 class CBaseObjectWidget;
 class CPBRWidget;
 class CDecalWidget;
-
+class QScrollArea;
 class MainWidget : public QWidget
 {
     Q_OBJECT
@@ -31,7 +32,7 @@ public:
     QWidget*            GetWidget(EWindowName widget);
 private:
     QHBoxLayout*        hlayout = nullptr;
-
+    QScrollArea*        scrollArea[WIDGET_NUM];
     CDecalWidget*       decalWidget = nullptr;
     COpenGLWidget*      openGLWidget = nullptr;
     CLightWidget*       lightWidget = nullptr;
@@ -39,7 +40,7 @@ private:
     CPBRWidget*         pbrWidget = nullptr;
     CEnvironmentWidget* environmentWidget = nullptr;
     CBaseObjectWidget*  baseWidget = nullptr;
-    QWidget*            activeWidget = nullptr;
+    EWindowName         activeWindow;
 public slots:
     void                SetActiveWindow(EWindowName widget, void* param = nullptr);
 };

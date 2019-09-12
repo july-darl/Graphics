@@ -14,6 +14,7 @@
 #include <QComboBox>
 #include <functional>
 #include "rendercommon.h"
+#include <QScrollArea>
 
 #define DECLARE_SLIDER(name)\
 protected:                                                                                            \
@@ -242,7 +243,7 @@ using namespace std;
 class PropertyWidget : public QWidget
 {
 public:
-    PropertyWidget();
+    PropertyWidget(QWidget* p);
 protected:
     QVBoxLayout* vlayout;
     void SetLabel(QString label);

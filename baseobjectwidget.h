@@ -8,7 +8,7 @@ class CBaseObjectWidget : public PropertyWidget
 {
     Q_OBJECT
 public:
-    CBaseObjectWidget();
+    CBaseObjectWidget(QWidget* parent = nullptr);
 private:
 
     DECLARE_CHECKBOX(bShadow)

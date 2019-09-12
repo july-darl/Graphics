@@ -10,7 +10,7 @@ class CEnvironmentWidget : public PropertyWidget
 {
     Q_OBJECT
 public:
-    CEnvironmentWidget();
+    CEnvironmentWidget(QWidget* parent = nullptr);
 private:
     DECLARE_CHECKBOX(hdr)
     DECLARE_CHECKBOX(gamma)

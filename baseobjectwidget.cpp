@@ -1,7 +1,8 @@
 #include "object.h"
 #include "baseobjectwidget.h"
 
-CBaseObjectWidget::CBaseObjectWidget()
+CBaseObjectWidget::CBaseObjectWidget(QWidget* parent)
+    : PropertyWidget(parent)
 {
     bShadowInit("产生阴影");
     bShowInit("show");
