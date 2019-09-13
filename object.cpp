@@ -112,6 +112,20 @@ bool GetVec3FromString(const char* str, float &x, float &y, float &z)
     return false;
 }
 
+void ObjectInfo::SetRenderQueue(Object* obj, int renderPriority)
+{
+    if(!obj)
+    {
+        return;
+    }
+    auto& vec = renderQueue[obj->renderPriority];
+    auto it = find(vec.begin(), vec.end(), obj);
+    vec.erase(it);
+
+    obj->renderPriority = renderPriority;
+    renderQueue[renderPriority].push_back(obj);//vecObj[idx];
+}
+
 void ObjectInfo::Load()
 {
     QFile file(":/objectInfo.xml");
@@ -283,6 +297,7 @@ Object* ObjectInfo::CreateObject(string name, int queueId)
         obj->Create();
         obj->type = name;
         obj->id = static_cast<int>(vecObj.size());
+        obj->renderPriority = queueId;
         vecObj.push_back(obj);
         renderQueue[queueId].push_back(obj);
     }

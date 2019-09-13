@@ -30,6 +30,7 @@ CBaseObjectWidget::CBaseObjectWidget(QWidget* parent)
 
 void CBaseObjectWidget::OnSelectedObject(Object* p)
 {
+    ObjectInfo::Inst()->SetActiveObject(p);
     bShadowSetData(&p->bCastShadow);
     bShowSetData(&p->bRender);
 

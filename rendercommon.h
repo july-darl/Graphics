@@ -22,6 +22,15 @@ enum Shape
     ShapeNum,
 };
 
+enum RenderQueue
+{
+    RQ_Background,
+    RQ_Default,
+    RQ_AlphaTest,
+    RQ_Transparent,
+    RQ_Blend,
+};
+
 struct Vector3f
 {
     float x,y,z;

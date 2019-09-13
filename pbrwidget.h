@@ -25,7 +25,13 @@ private:
     DECLARE_COMBO(renderQueue)
 public:
     void OnSelectedObject(class Object* obj);
+    void OnChangeRenderQueue(int index);
 };
 
+// Cs + Cd
+// Cs * (1 - Cd) + Cd
+// Cs * As + Cd * (1 - As)
+// Cs * Cs + Cd * (1 - Cs)
+//
 
 #endif // PBRWIDGET_H

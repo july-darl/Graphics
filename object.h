@@ -28,6 +28,7 @@ public:
     Shape                shape;
     string               type;
     int                  id;
+    int                  renderPriority = 1000;
 
     const string&        GetName() { return m_strName; }
     void                 SetName(const string& name) { m_strName = name;}
@@ -60,6 +61,8 @@ private:
     map<int, vector<Object*>>   renderQueue;
     vector<Object*>             vecObj;
 
+    Object*                     activeObj = nullptr;
+
     static ObjectInfo* objInfo;
 public:
     static ObjectInfo* Inst() {
@@ -69,11 +72,15 @@ public:
         return objInfo;
     }
 
+    void                 SetActiveObject(Object* obj) { activeObj = obj; }
+    Object*              GetActiveObject() { return activeObj;}
+    void                 SetRenderQueue(Object* obj, int renderPriority);
+    void                 Blend();
     Object*              GetObject(size_t idx) { return vecObj[idx];}
     int                  GetObjectCount() { return static_cast<int>(vecObj.size());}
     void                 Create();
     void                 Render();
-    Object*              CreateObject(string name, int queueId = 2000);
+    Object*              CreateObject(string name, int queueId = 1000);
     void                 DelayRender();
 private:
     void                 Load();

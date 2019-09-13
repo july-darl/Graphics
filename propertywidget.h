@@ -236,6 +236,8 @@ public:                                                                         
         {                                                                                             \
             name##combo->addItem(QString(data[i]));                                                   \
         }                                                                                             \
+        connect(name##combo,static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),    \
+            this,name##callback);                                                                     \
     }                                                                                                 \
 
 class QVBoxLayout;

@@ -22,7 +22,7 @@ CPBRWidget::CPBRWidget(QWidget* parent)
 
     vector<QString> name { "背景","默认","透明测试","透明混合","叠加效果"};
     renderQueueInit(name, [&](int index){
-        qDebug() << "here:" << index;
+        OnChangeRenderQueue(index);
     });
     vlayout->addStretch(static_cast<int>((height() * 0.8)));
 }
@@ -46,4 +46,10 @@ void CPBRWidget::OnSelectedObject(Object* obj)
     bSSRSetData(&p->bSSR);
     bFireSetData(&p->bFire);
     bXRaySetData(&p->bXRay);
+}
+
+void CPBRWidget::OnChangeRenderQueue(int index)
+{
+    Object* obj = ObjectInfo::Inst()->GetActiveObject();
+    ObjectInfo::Inst()->SetRenderQueue(obj, index * 1000);
 }
