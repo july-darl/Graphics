@@ -21,7 +21,9 @@ CPBRWidget::CPBRWidget(QWidget* parent)
     bXRayInit("X射线");
 
     vector<QString> name { "背景","默认","透明测试","透明混合","叠加效果"};
-    renderQueueInit(name, [&](int index){});
+    renderQueueInit(name, [&](int index){
+        qDebug() << "here:" << index;
+    });
     vlayout->addStretch(static_cast<int>((height() * 0.8)));
 }
 
