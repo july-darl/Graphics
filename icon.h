@@ -22,7 +22,7 @@ public:
     void                  SetBillboardType(EBillboardType type) { billboardType = type;}
 
     void                  Create() override;
-    void                  LateRender() override;
+    void                  ForwardRender() override;
     void                  Draw(bool = false) override {} //do nothing
     void                  UpdateLocation() override;
 };

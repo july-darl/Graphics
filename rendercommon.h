@@ -27,8 +27,7 @@ enum RenderQueue
     RQ_Background,
     RQ_Default,
     RQ_AlphaTest,
-    RQ_Transparent,
-    RQ_Blend,
+    RQ_Transparent
 };
 
 struct Vector3f

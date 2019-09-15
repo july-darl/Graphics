@@ -17,13 +17,13 @@ void Billboard::SetImage(QImage& image)
     pTex->setWrapMode(QOpenGLTexture::Repeat);
 }
 
-void Billboard::LateRender()
+void Billboard::ForwardRender()
 {
     QOpenGLFunctions* gl = QOpenGLContext::currentContext()->functions();
 
-    gl->glDepthMask(GL_FALSE);
-    gl->glEnable(GL_BLEND);
-    gl->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    //gl->glDepthMask(GL_FALSE);
+   // gl->glEnable(GL_BLEND);
+   // gl->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     program->bind();
     program->setUniformValue("ModelMatrix",modelMatrix);
@@ -40,8 +40,8 @@ void Billboard::LateRender()
 
     RenderCommon::Inst()->GetGeometryEngine()->drawPlane(program);
 
-    gl->glDisable(GL_BLEND);
-    gl->glDepthMask(GL_TRUE);
+//    gl->glDisable(GL_BLEND);
+//    gl->glDepthMask(GL_TRUE);
 }
 
 void Billboard::UpdateLocation()

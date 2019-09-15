@@ -118,12 +118,38 @@ void ObjectInfo::SetRenderQueue(Object* obj, int renderPriority)
     {
         return;
     }
-    auto& vec = renderQueue[obj->renderPriority];
-    auto it = find(vec.begin(), vec.end(), obj);
-    vec.erase(it);
+    if(obj->renderPriority == renderPriority)
+    {
+        return;
+    }
 
+    // erase the old obj
+    if(obj->renderPriority == RQ_Transparent)
+    {
+        const float& z = obj->position.z;
+        if(transparentObjs.find(z) != transparentObjs.end())
+        {
+            transparentObjs[z].erase(obj);
+        }
+    }
+    else if(obj->renderPriority >= 0)
+    {
+        size_t id = static_cast<size_t>(obj->renderPriority);
+        renderQueue[id].erase(obj);
+    }
+
+    // insert the new obj
+    if(renderPriority == RQ_Transparent)
+    {
+        const float& z = obj->position.z;
+        transparentObjs[z].insert(obj);
+    }
+    else
+    {
+        size_t id = static_cast<size_t>(renderPriority);
+        renderQueue[id].insert(obj);
+    }
     obj->renderPriority = renderPriority;
-    renderQueue[renderPriority].push_back(obj);//vecObj[idx];
 }
 
 void ObjectInfo::Load()
@@ -159,17 +185,18 @@ void ObjectInfo::Load()
         QDomElement element = child.toElement();
         if (element.tagName() == "object")
         {
-            QString type     = element.attribute("type");
-            QString name     = element.attribute("name");
-            QString position = element.attribute("position");
-            QString rotation = element.attribute("rotation");
-            QString scale    = element.attribute("scale");
-            QString bShadow  = element.attribute("bCastShadow");
-            QString shape    = element.attribute("shape");
-            QString bShow    = element.attribute("bShow");
+            QString type          = element.attribute("type");
+            QString name          = element.attribute("name");
+            QString position      = element.attribute("position");
+            QString rotation      = element.attribute("rotation");
+            QString scale         = element.attribute("scale");
+            QString bShadow       = element.attribute("bCastShadow");
+            QString shape         = element.attribute("shape");
+            QString bShow         = element.attribute("bShow");
+            QString renderQueue   = element.attribute("renderQueue");
 
 
-            qDebug() << name;
+         //   qDebug() << name;
             if(!type.isEmpty())
             {
                 Object* obj = CreateObject(type.toStdString());
@@ -199,6 +226,8 @@ void ObjectInfo::Load()
                     GetVec3FromString(rotation.toStdString().c_str(),obj->rotation.x,obj->rotation.y,obj->rotation.z);
                     GetVec3FromString(scale.toStdString().c_str(),obj->scale.x,obj->scale.y,obj->scale.z);
 
+                    int rq = renderQueue.isEmpty() ? RQ_Default : renderQueue.toInt();
+                    ObjectInfo::Inst()->SetRenderQueue(obj, rq);
                     if(!bShow.isEmpty())
                     {
                         obj->bRender = bShow != "0";
@@ -216,6 +245,7 @@ void ObjectInfo::Load()
                             QImage img(path);
                             billboard->SetImage(img);
                         }
+
                         if(!billType.isEmpty())
                         {
                             if(billType == "screen")
@@ -259,7 +289,7 @@ void ObjectInfo::Load()
                         Decal* decal = static_cast<Decal*>(obj);
                         if(!size.isEmpty())
                         {
-                            decal->decalSize = atof(size.toStdString().c_str());
+                            decal->decalSize = static_cast<float>(atof(size.toStdString().c_str()));
                         }
                     }
                 }
@@ -289,7 +319,7 @@ void ObjectInfo::Create()
     snow_N->setWrapMode(QOpenGLTexture::Repeat);
 }
 
-Object* ObjectInfo::CreateObject(string name, int queueId)
+Object* ObjectInfo::CreateObject(string name)
 {
     Object* obj = Helper::Inst()->CreateObject(name);
     if (obj)
@@ -297,11 +327,14 @@ Object* ObjectInfo::CreateObject(string name, int queueId)
         obj->Create();
         obj->type = name;
         obj->id = static_cast<int>(vecObj.size());
-        obj->renderPriority = queueId;
         vecObj.push_back(obj);
-        renderQueue[queueId].push_back(obj);
     }
     return obj;
+}
+
+ObjectInfo::ObjectInfo()
+{
+    renderQueue.resize(3);
 }
 
 void ObjectInfo::Render()
@@ -335,40 +368,28 @@ void ObjectInfo::Render()
      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     //  生成雪的遮挡
-     QOpenGLShaderProgram* snowDepthProgram = CResourceInfo::Inst()->GetProgram("SnowDepth");
-     snowDepthProgram->bind();
-     for(size_t i = 0;i < vecObj.size(); i++)
-     {
-         if(vecObj[i]->bCastShadow)
-         {
-              vecObj[i]->GenSnowDepth();
-         }
-     }
-
+    QOpenGLShaderProgram* snowDepthProgram = CResourceInfo::Inst()->GetProgram("SnowDepth");
+    snowDepthProgram->bind();
+    for(size_t i = 0;i < vecObj.size(); i++)
+    {
+        if(vecObj[i]->bCastShadow)
+        {
+             vecObj[i]->GenSnowDepth();
+        }
+    }
+    glClearColor(0,0,0,1);
     // 写入g-buffer
     auto gFrameBuffer = CResourceInfo::Inst()->CreateFrameBuffer("GBuffer", screenX, screenY, 3);
     glBindFramebuffer(GL_FRAMEBUFFER, gFrameBuffer->frameBuffer);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    for(auto& obj : renderQueue)
+    for(auto& setObj : renderQueue)
     {
-        auto& vecObj = obj.second;
-        int renderPriority = obj.first;
-        int rq = renderPriority / 1000;
-        switch(rq)
+        for(auto& obj : setObj)
         {
-        case RQ_Transparent:
-            break;
-        case RQ_Default:
-            break;
-        default: // do nothing here
-            break;
-        }
-        for(size_t i = 0; i < vecObj.size(); i++)
-        {
-            if(vecObj[i]->bRender)
+            if(obj->bRender)
             {
-                vecObj[i]->Render();
+                obj->Render();
             }
         }
     }
@@ -385,13 +406,12 @@ void ObjectInfo::Render()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     auto bloomBuffer = CResourceInfo::Inst()->CreateFrameBuffer("Bloom",screenX,screenY);
     glBindFramebuffer(GL_FRAMEBUFFER, bloomBuffer->frameBuffer);
-    glClearColor(0,0,0,1);
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     // 二次渲染
     for(size_t i = 0;i < vecObj.size(); i++)
     {
         vecObj[i]->SecondRender();
-        //vecObj[i]->Draw();
     }
 
     // 延迟渲染部分
@@ -399,14 +419,27 @@ void ObjectInfo::Render()
 
     DelayRender();
 
-
-    for(size_t i = 0;i < vecObj.size(); i++)
+    // 透明物体渲染
+    if(!transparentObjs.empty())
     {
-        if(vecObj[i]->bRender)
+        glDepthMask(GL_FALSE);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        for(auto& data : transparentObjs)
         {
-            vecObj[i]->LateRender();
+            auto& setObj = data.second;
+            for(auto& obj : setObj)
+            {
+                if(obj->bRender)
+                {
+                    obj->ForwardRender();
+                }
+            }
         }
+        glDisable(GL_BLEND);
+        glDepthMask(GL_TRUE);
     }
+
 }
 
 void ObjectInfo::DelayRender()

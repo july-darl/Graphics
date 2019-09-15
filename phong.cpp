@@ -23,14 +23,7 @@ void Phong::Render()
         }
         offset++;
     }
-    if(renderPriority / 1000 == RQ_AlphaTest)
-    {
-        alpha = 1.0f;
-    }
-    else
-    {
-        alpha = 0.0f;
-    }
+
     program->bind();
 
     program->setUniformValue("ModelMatrix",modelMatrix);
@@ -45,7 +38,7 @@ void Phong::Render()
 
     program->setUniformValue("rough", rough);
     program->setUniformValue("ao", ao);
-    program->setUniformValue("alpha", alpha);
+    program->setUniformValue("rq", renderPriority);
 
     if(shape == SHA_Obj && pModel)
     {

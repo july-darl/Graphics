@@ -23,11 +23,8 @@ private:
     DECLARE_CHECKBOX(bFire)
     DECLARE_CHECKBOX(bXRay)
     DECLARE_CHECKBOX(bOutline)
-    DECLARE_COMBO(renderQueue)
-    DECLARE_COMBO(blendMode)
 public:
     void OnSelectedObject(class Object* obj);
-    void OnChangeRenderQueue(int index);
 };
 
 // Cs + Cd

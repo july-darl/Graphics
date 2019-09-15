@@ -21,17 +21,6 @@ CPBRWidget::CPBRWidget(QWidget* parent)
     bXRayInit("X射线");
     bOutlineInit("描边");
 
-    vector<QString> name { "背景","默认","透明测试","透明混合","叠加效果"};
-    renderQueueInit("渲染队列", name, [&](int index){
-        OnChangeRenderQueue(index);
-    });
-
-    vector<QString> blendName { "Cs + Cd","Cs * (1 - Cd) + Cd","Cs * As + Cd * (1 - As)","Cs * Cs + Cd * (1 - Cs)"};
-    blendModeInit("透明混合公式", blendName, [&](int index){
-        OnChangeRenderQueue(index);
-    });
-    blendModeSetVisible(false);
-
     vlayout->addStretch(static_cast<int>((height() * 0.8)));
 }
 // Cs + Cd
@@ -58,14 +47,7 @@ void CPBRWidget::OnSelectedObject(Object* obj)
     bFireSetData(&p->bFire);
     bXRaySetData(&p->bXRay);
     bOutlineSetData(&p->bOutline);
-    renderQueueSetData(&p->renderPriority);
-}
-
-void CPBRWidget::OnChangeRenderQueue(int index)
-{
-    Object* obj = ObjectInfo::Inst()->GetActiveObject();
-    ObjectInfo::Inst()->SetRenderQueue(obj, index * 1000);
-
-    blendModeSetVisible(index == RQ_Transparent);
 
 }
+
+

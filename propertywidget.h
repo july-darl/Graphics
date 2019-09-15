@@ -256,10 +256,10 @@ public:                                                                         
         name##combo->setVisible(bVis);                                                                \
         name##label->setVisible(bVis);                                                                \
     }                                                                                                 \
-    void name##SetData(int* renderPriority)                                                           \
+    void name##SetData(int* data)                                                                     \
     {                                                                                                 \
-        name##index = renderPriority;                                                                 \
-        name##combo->setCurrentIndex(*renderPriority / 1000);                                         \
+        name##index = data;                                                                           \
+        name##combo->setCurrentIndex(*data);                                                          \
     }                                                                                                 \
 
 

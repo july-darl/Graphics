@@ -11,6 +11,7 @@ uniform sampler2D normal;
 uniform sampler2D mask;
 uniform bool bUseNormalMap;
 uniform int id;
+uniform int rq;
 
 in vec2 v_texcoord;
 in vec3 v_tangent;
@@ -46,13 +47,23 @@ void main(void)
     }
     NormalAndDepth.w = -v_depth.x/v_depth.y/zFar;
 
-    Color.xyz = color;
-    if(Color.xyz == vec3(-1,-1,-1))
-    {
-        Color = texture(albedo,v_texcoord);
-        if(Color.w < alpha) discard;
-    }
 
+    if(color.xyz == vec3(-1,-1,-1))
+    {
+        float alpha = texture(albedo,v_texcoord).w;
+        if(rq == 2 && alpha < 0.1)
+        {
+            discard;
+        }
+        else
+        {
+             Color.xyz = texture(albedo,v_texcoord).xyz;
+        }
+    }
+    else
+    {
+            Color.xyz = color;
+    }
 
     Param.x = rough;
     Param.z = ao;

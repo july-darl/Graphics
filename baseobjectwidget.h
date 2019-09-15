@@ -22,8 +22,13 @@ private:
     DECLARE_SLIDER(scaleX)
     DECLARE_SLIDER(scaleY)
     DECLARE_SLIDER(scaleZ)
+    DECLARE_COMBO(renderQueue)
+    DECLARE_COMBO(blendMode)
+
+    void OnChangeRenderQueue(int index);
 public slots:
     void OnSelectedObject(Object* obj);
+
 };
 
 #endif // BASEOBJECTWIDGET_H

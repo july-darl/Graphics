@@ -5,6 +5,7 @@
 #include <QOpenGLShaderProgram>
 #include <QOpenGLFunctions>
 #include "rendercommon.h"
+#include <unordered_set>
 #include "reflect.h"
 
 using namespace std;
@@ -28,7 +29,7 @@ public:
     Shape                shape;
     string               type;
     int                  id;
-    int                  renderPriority = 1000;
+    int                  renderPriority = -1;
 
     const string&        GetName() { return m_strName; }
     void                 SetName(const string& name) { m_strName = name;}
@@ -44,7 +45,7 @@ public:
     virtual void         Render() { }
     virtual void         DecalRender() { }
     virtual void         SecondRender() { }
-    virtual void         LateRender() { }
+    virtual void         ForwardRender() { }
     virtual void         Draw(bool bTess = false);
     virtual void         Draw(QOpenGLShaderProgram*,bool bTess = false);
     virtual              ~Object() { }
@@ -58,7 +59,8 @@ private:
     QOpenGLTexture*             snow_D;
     QOpenGLTexture*             snow_N;
 
-    map<int, vector<Object*>>   renderQueue;
+    vector<unordered_set<Object*>>     renderQueue;
+    map<float, unordered_set<Object*>> transparentObjs;
     vector<Object*>             vecObj;
 
     Object*                     activeObj = nullptr;
@@ -71,7 +73,7 @@ public:
         }
         return objInfo;
     }
-
+    ObjectInfo();
     void                 SetActiveObject(Object* obj) { activeObj = obj; }
     Object*              GetActiveObject() { return activeObj;}
     void                 SetRenderQueue(Object* obj, int renderPriority);
@@ -80,7 +82,7 @@ public:
     int                  GetObjectCount() { return static_cast<int>(vecObj.size());}
     void                 Create();
     void                 Render();
-    Object*              CreateObject(string name, int queueId = 1000);
+    Object*              CreateObject(string name);
     void                 DelayRender();
 private:
     void                 Load();
