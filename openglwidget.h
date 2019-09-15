@@ -35,8 +35,10 @@ protected:
     void            resizeGL(int w, int h) override;
     void            paintGL() override;
     void            timerEvent(QTimerEvent *) override;
-
+    void            ImGui_Init();
+    void            ImGui_NewFrame();
 private:
+    GLuint          m_frontTex;
     QBasicTimer     m_timer;
     int             m_nDir = KEY_NONE;
     bool            m_bMouseDown = false;

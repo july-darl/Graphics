@@ -79,6 +79,18 @@ QOpenGLTexture* CResourceInfo::CreateTexture(string name, QOpenGLTexture::WrapMo
     }
 }
 
+GLuint CResourceInfo::CreateTexture(const char* pixels, int width, int height)
+{
+    QOpenGLFunctions* gl = QOpenGLContext::currentContext()->functions();
+    GLuint tex_id;
+    gl->glGenTextures(1, &tex_id);
+    gl->glBindTexture(GL_TEXTURE_2D, tex_id);
+    gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    gl->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    return tex_id;
+}
+
 QOpenGLShaderProgram* CResourceInfo::CreateTessProgram(string tcShaderName, string teShaderName,string vShaderName, string fShaderName, string name)
 {
     if(mapProgram.find(name) != mapProgram.end())

@@ -48,5 +48,7 @@
         <file>decal.vsh</file>
         <file>xray.vsh</file>
         <file>xray.fsh</file>
+        <file>imgui.vsh</file>
+        <file>imgui.fsh</file>
     </qresource>
 </RCC>

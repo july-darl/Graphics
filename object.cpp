@@ -330,20 +330,20 @@ void ObjectInfo::Render()
         }
     }
 
-    auto snowMapFrameBuffer = CResourceInfo::Inst()->CreateFrameBuffer("SnowMap", screenX, screenY);
-    glBindFramebuffer(GL_FRAMEBUFFER, snowMapFrameBuffer->frameBuffer);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+     auto snowMapFrameBuffer = CResourceInfo::Inst()->CreateFrameBuffer("SnowMap", screenX, screenY);
+     glBindFramebuffer(GL_FRAMEBUFFER, snowMapFrameBuffer->frameBuffer);
+     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-     // 生成雪的遮挡
-    QOpenGLShaderProgram* snowDepthProgram = CResourceInfo::Inst()->GetProgram("SnowDepth");
-    snowDepthProgram->bind();
-    for(size_t i = 0;i < vecObj.size(); i++)
-    {
-        if(vecObj[i]->bCastShadow)
-        {
-             vecObj[i]->GenSnowDepth();
-        }
-    }
+    //  生成雪的遮挡
+     QOpenGLShaderProgram* snowDepthProgram = CResourceInfo::Inst()->GetProgram("SnowDepth");
+     snowDepthProgram->bind();
+     for(size_t i = 0;i < vecObj.size(); i++)
+     {
+         if(vecObj[i]->bCastShadow)
+         {
+              vecObj[i]->GenSnowDepth();
+         }
+     }
 
     // 写入g-buffer
     auto gFrameBuffer = CResourceInfo::Inst()->CreateFrameBuffer("GBuffer", screenX, screenY, 3);
@@ -353,6 +353,17 @@ void ObjectInfo::Render()
     for(auto& obj : renderQueue)
     {
         auto& vecObj = obj.second;
+        int renderPriority = obj.first;
+        int rq = renderPriority / 1000;
+        switch(rq)
+        {
+        case RQ_Transparent:
+            break;
+        case RQ_Default:
+            break;
+        default: // do nothing here
+            break;
+        }
         for(size_t i = 0; i < vecObj.size(); i++)
         {
             if(vecObj[i]->bRender)
@@ -456,7 +467,7 @@ void ObjectInfo::DelayRender()
     delayProgram->setUniformValue("SnowDepth",9);
 
     glActiveTexture(GL_TEXTURE10);
-     glBindTexture(GL_TEXTURE_2D, bloomBuffer->vecTexId[0]);
+    glBindTexture(GL_TEXTURE_2D, bloomBuffer->vecTexId[0]);
     delayProgram->setUniformValue("Bloom",10);
 
     delayProgram->setUniformValue("ProjectMatrix",RenderCommon::Inst()->GetProjectMatrix());

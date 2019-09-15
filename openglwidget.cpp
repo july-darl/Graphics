@@ -3,7 +3,8 @@
 #include "rendercommon.h"
 #include "object.h"
 #include <QMouseEvent>
-
+#include "imgui.h"
+#include "resourceinfo.h"
 COpenGLWidget::COpenGLWidget(QWidget *parent) :
     QOpenGLWidget(parent)
 {
@@ -83,6 +84,52 @@ void COpenGLWidget::keyReleaseEvent(QKeyEvent* event)
             m_nDir = ~(m_nDir ^ ~KEY_DOWN);
         }
     }
+}
+
+void COpenGLWidget::ImGui_NewFrame()
+{
+    auto program = CResourceInfo::Inst()->CreateProgram("imgui.vsh", "imgui.fsh", "imgui");
+}
+
+void COpenGLWidget::ImGui_Init()
+{
+   // Setup back-end capabilities flags
+    ImGuiIO& io = ImGui::GetIO();
+    io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;         // We can honor GetMouseCursor() values (optional)
+    io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;          // We can honor io.WantSetMousePos requests (optional, rarely used)
+    io.BackendPlatformName = "imgui_impl_qt";
+
+    // Keyboard mapping. ImGui will use those indices to peek into the io.KeysDown[] array.
+    io.KeyMap[ImGuiKey_Tab] = Qt::Key_Tab;
+    io.KeyMap[ImGuiKey_LeftArrow] = Qt::Key_Left;
+    io.KeyMap[ImGuiKey_RightArrow] = Qt::Key_Right;
+    io.KeyMap[ImGuiKey_UpArrow] = Qt::Key_Up;
+    io.KeyMap[ImGuiKey_DownArrow] = Qt::Key_Down;
+    io.KeyMap[ImGuiKey_PageUp] = Qt::Key_PageUp;
+    io.KeyMap[ImGuiKey_PageDown] = Qt::Key_Down;
+    io.KeyMap[ImGuiKey_Home] = Qt::Key_Home;
+    io.KeyMap[ImGuiKey_End] = Qt::Key_End;
+    io.KeyMap[ImGuiKey_Insert] = Qt::Key_Insert;
+    io.KeyMap[ImGuiKey_Delete] = Qt::Key_Delete;
+    io.KeyMap[ImGuiKey_Backspace] = Qt::Key_Backspace;
+    io.KeyMap[ImGuiKey_Space] = Qt::Key_Space;
+    io.KeyMap[ImGuiKey_Enter] = Qt::Key_Enter;
+    io.KeyMap[ImGuiKey_Escape] =  Qt::Key_Escape;
+   // io.KeyMap[ImGuiKey_KeyPadEnter] =Qt::Key_KeyPad
+    io.KeyMap[ImGuiKey_A] = Qt::Key_A;
+    io.KeyMap[ImGuiKey_C] = Qt::Key_C;
+    io.KeyMap[ImGuiKey_V] = Qt::Key_V;
+    io.KeyMap[ImGuiKey_X] = Qt::Key_X;
+    io.KeyMap[ImGuiKey_Y] = Qt::Key_Y;
+    io.KeyMap[ImGuiKey_Z] = Qt::Key_Z;
+
+    unsigned char* pixels;
+    int width, height;
+    io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);   // Load as RGBA 32-bits (75% of the memory is wasted, but default font is so small) because it is more likely to be compatible with user's existing shaders. If your ImTextureId represent a higher-level concept than just a GL texture id, consider calling GetTexDataAsAlpha8() instead to save on GPU memory.
+    //CResourceInfo::Inst()->CreateTexture(pixels, width, height);
+
+    // Store our identifier
+   // io.Fonts->TexID = (ImTextureID)(intptr_t)m_frontTex;
 }
 
 void COpenGLWidget::initializeGL()
@@ -192,15 +239,16 @@ void COpenGLWidget::resizeGL(int w, int h)
 {
     RenderCommon::Inst()->UpdateScreenXY(w, h);
 }
-#include "resourceinfo.h"
+
 void COpenGLWidget::paintGL()
 {
     glClearColor(0,0,0,1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-   // auto p = CResourceInfo::Inst()->CreateTessProgram("test.tcsh","test.tesh","test.vsh","test.fsh","test");
-   // p->bind();
-   //
-   // RenderCommon::Inst()->GetGeometryEngine()->drawSphere(p,true);
+    ImGui_NewFrame();
+    //ImGui::NewFrame();
+    //ImGui::Text("This is some useful text.");
+
     ObjectInfo::Inst()->Render();
+   // ImGui::Render();
 }

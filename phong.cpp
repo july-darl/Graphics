@@ -13,19 +13,24 @@ void Phong::Render()
     QOpenGLFunctions* gl = QOpenGLContext::currentContext()->functions();
 
     int mode = 0;
-    if(bSSR)
+    vector<bool> renderFlags = { bSSR, bBloom, bXRay,bOutline };
+    int offset = 0;
+    for(auto renderFlag : renderFlags)
     {
-        mode += 1;
+        if(renderFlag)
+        {
+            mode += 1 << offset;
+        }
+        offset++;
     }
-    if(bBloom)
+    if(renderPriority / 1000 == RQ_AlphaTest)
     {
-        mode += 2;
+        alpha = 1.0f;
     }
-    if(bXRay)
+    else
     {
-        mode += 4;
+        alpha = 0.0f;
     }
-
     program->bind();
 
     program->setUniformValue("ModelMatrix",modelMatrix);
@@ -40,6 +45,7 @@ void Phong::Render()
 
     program->setUniformValue("rough", rough);
     program->setUniformValue("ao", ao);
+    program->setUniformValue("alpha", alpha);
 
     if(shape == SHA_Obj && pModel)
     {

@@ -15,11 +15,12 @@
 #include <functional>
 #include "rendercommon.h"
 #include <QScrollArea>
+#include <QLineEdit>
 
 #define DECLARE_SLIDER(name)\
 protected:                                                                                            \
     QSlider* name##slider;                                                                            \
-    QLabel* name##label;                                                                              \
+    QLineEdit* name##edit;                                                                            \
     float name##min,name##max;                                                                        \
     float* name##data;                                                                                \
 public:                                                                                               \
@@ -32,12 +33,12 @@ public:                                                                         
                                                                                                       \
         name##slider->setOrientation(Qt::Horizontal);                                                 \
         if(da)                                                                                        \
-            name##label = new QLabel(QString::number(static_cast<double>(*da)));                      \
+            name##edit = new QLineEdit(QString::number(static_cast<double>(*da)));                    \
         else                                                                                          \
-            name##label = new QLabel();                                                               \
+            name##edit = new QLineEdit();                                                             \
         hlayout->addWidget(text,1);                                                                   \
         hlayout->addWidget(name##slider,2);                                                           \
-        hlayout->addWidget(name##label,1);                                                            \
+        hlayout->addWidget(name##edit,1);                                                             \
         vlayout->addLayout(hlayout);                                                                  \
         name##slider->setMinimum(0);                                                                  \
         name##slider->setMaximum(100);                                                                \
@@ -45,8 +46,12 @@ public:                                                                         
             float t = static_cast<float>(value) / 100 *(name##max - name##min) + name##min;           \
             char buffer[100];                                                                         \
             sprintf(buffer,"%.2f",static_cast<double>(t));                                            \
-            name##label->setText(QString(buffer));                                                    \
+            name##edit->setText(QString(buffer));                                                     \
             if(name##data)*name##data = t;});                                                         \
+        connect(name##edit,&QLineEdit::textEdited,this,[&](const QString& str) {                      \
+            float data = str.toFloat();                                                               \
+            data = clamp<float>(data - name##min, 0, name##max - name##min) / (name##max - name##min) * 100;          \
+            name##slider->setValue(static_cast<int>(data));});                                        \
     }                                                                                                 \
     void name##SetData(float* da)                                                                     \
     {                                                                                                 \
@@ -54,7 +59,7 @@ public:                                                                         
         if(da)  {                                                                                     \
             char buffer[100];                                                                         \
             sprintf(buffer,"%.2f",static_cast<double>(*da));                                          \
-            name##label->setText(QString(buffer));                                                    \
+            name##edit->setText(QString(buffer));                                                     \
             name##slider->setValue(static_cast<int>((*da - name##min)/(name##max - name##min)*100));  \
         }                                                                                             \
     }                                                                                                 \
@@ -226,12 +231,19 @@ public:                                                                         
 protected:                                                                                            \
     function<void(int)> name##callback;                                                               \
     QComboBox* name##combo;                                                                           \
+    QLabel* name##label;                                                                              \
+    int* name##index;                                                                                 \
 public:                                                                                               \
-    void name##Init(vector<QString>& data,function<void(int)> func)                                   \
+    void name##Init(const QString& label, vector<QString>& data,function<void(int)> func)             \
     {                                                                                                 \
         name##callback = func;                                                                        \
         name##combo = new QComboBox();                                                                \
-        vlayout->addWidget(name##combo);                                                              \
+        name##label = new QLabel();                                                                   \
+        name##label->setText(label);                                                                  \
+        QHBoxLayout* hlayout = new QHBoxLayout();                                                     \
+        hlayout->addWidget(name##combo);                                                              \
+        hlayout->addWidget(name##label);                                                              \
+        vlayout->addLayout(hlayout);                                                                  \
         for(size_t i = 0;i < data.size();i++)                                                         \
         {                                                                                             \
             name##combo->addItem(QString(data[i]));                                                   \
@@ -239,6 +251,17 @@ public:                                                                         
         connect(name##combo,static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),    \
             this,name##callback);                                                                     \
     }                                                                                                 \
+    void name##SetVisible(bool bVis)                                                                  \
+    {                                                                                                 \
+        name##combo->setVisible(bVis);                                                                \
+        name##label->setVisible(bVis);                                                                \
+    }                                                                                                 \
+    void name##SetData(int* renderPriority)                                                           \
+    {                                                                                                 \
+        name##index = renderPriority;                                                                 \
+        name##combo->setCurrentIndex(*renderPriority / 1000);                                         \
+    }                                                                                                 \
+
 
 class QVBoxLayout;
 using namespace std;

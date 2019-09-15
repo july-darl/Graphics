@@ -35,6 +35,7 @@ public:
 
     QOpenGLShader*              CreateShader(string name, QOpenGLShader::ShaderType type);
     QOpenGLTexture*             CreateTexture(string name, QOpenGLTexture::WrapMode wrapMode = QOpenGLTexture::Repeat);
+    GLuint                      CreateTexture(const char* pixels, int width, int height);
     STextureBuffer*             CreateFrameBuffer(string name, int screenX, int screenY, int size = 1);
 
     QOpenGLShaderProgram*       CreateTessProgram(string tcShaderName, string teShaderName, string vShaderName, string fShaderName, string name);

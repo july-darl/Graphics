@@ -269,6 +269,11 @@ bool UseSSS(float id)
     return abs(100 * id - 4) < 0.01;
 }
 
+bool UseOutline(float id)
+{
+    return abs(100 * id - 8) < 0.01;
+}
+
 float distance(vec3 p)
 {
     return sqrt(p.x * p.x + p.y * p.y + p.z * p.z);
@@ -498,6 +503,49 @@ vec3 GetCloudLight(vec3 pos, float density, vec3 sunCol)
    }
    light *= shadow;
    return light;
+}
+float sobel_y[] =
+{
+    -1,-2,-1,
+    0 , 0, 0,
+    1 , 2, 1,
+};
+
+float sobel_x[] =
+{
+    -1, 0, 1,
+    -2, 0, 2,
+    -1, 0, 1,
+};
+
+bool drawLine()
+{
+    float depth = texture2D(NormalAndDepth, v_texcoord).w;
+    vec4 curNormalX = vec4(0, 0, 0, 0);
+    int k = 0;
+    for(int i = -1; i <=1 ;i++)
+    {
+        for(int j = -1; j <= 1;j++)
+        {
+            vec4 ret =  texture2D(NormalAndDepth, v_texcoord + vec2(1.0 * i / ScreenX, 1.0 * j / ScreenY));
+            curNormalX += sobel_x[k++] * ret;
+        }
+    }
+    k = 0;
+    vec4 curNormalY = vec4(0, 0, 0, 0);
+    for(int i = -1; i <=1 ;i++)
+    {
+        for(int j = -1; j <= 1;j++)
+        {
+            curNormalY += sobel_y[k++] * texture2D(NormalAndDepth, v_texcoord + vec2(1.0 * i / ScreenX, 1.0 * j / ScreenY));
+        }
+    }
+
+
+   vec4 size = sqrt(curNormalX * curNormalX + curNormalY * curNormalY);
+
+   float threshold = 0.8 + max(0.5, 5 * depth);
+   return size.x > threshold || size.y > threshold || size.z > threshold;// || size.w > 1.0/zFar;
 }
 
 void main(void)
@@ -745,7 +793,11 @@ void main(void)
 
         vec3 bloom_color = GetBloomColor(v_texcoord, UseBloom(id));
         color = color * fShadow;
-        fragColor = vec4(color + I * sun_color + bloom_color, 1.0);
+        fragColor = vec4(color + bloom_color, 1.0);
+        if(UseOutline(id) && drawLine())
+        {
+            fragColor = vec4(0.1,0.1,0.1,1);
+        }
         //fragColor = vec4(bloom_color, 1.0);
     }
     else if(result == vec4(1,1,1,1))

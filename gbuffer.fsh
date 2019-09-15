@@ -4,11 +4,11 @@ uniform float zFar;
 uniform float rough;
 uniform float metal;
 uniform float ao;
+uniform float alpha;
 uniform vec3 color;
 uniform sampler2D albedo;
 uniform sampler2D normal;
 uniform sampler2D mask;
-uniform sampler2D fire;
 uniform bool bUseNormalMap;
 uniform int id;
 
@@ -49,7 +49,8 @@ void main(void)
     Color.xyz = color;
     if(Color.xyz == vec3(-1,-1,-1))
     {
-        Color.xyz = texture(albedo,v_texcoord).xyz;
+        Color = texture(albedo,v_texcoord);
+        if(Color.w < alpha) discard;
     }
 
 

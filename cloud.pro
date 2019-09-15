@@ -25,7 +25,11 @@ SOURCES += main.cpp \
     volumecloud.cpp \
     resourceinfo.cpp \
     decal.cpp \
-    decalwidget.cpp
+    decalwidget.cpp \
+    fbximporter.cpp \
+    imgui.cpp \
+    imgui_widgets.cpp \
+    imgui_draw.cpp
 
 SOURCES += \
     mainwidget.cpp \
@@ -56,7 +60,10 @@ HEADERS += \
     volumecloud.h \
     resourceinfo.h \
     decal.h \
-    decalwidget.h
+    decalwidget.h \
+    fbximporter.h \
+    imgui.h \
+    imgui_internal.h
 
 RESOURCES += \
     shaders.qrc \
@@ -65,5 +72,5 @@ RESOURCES += \
 INCLUDEPATH += include
 
 LIBS += -L$$PWD/lib/ \
-        -lassimp-vc140-mt
-
+        -llibfbxsdk  \
+        -lassimp-vc140-mt \

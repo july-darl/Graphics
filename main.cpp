@@ -6,6 +6,7 @@
 #include "mainwidget.h"
 #endif
 
+#include "fbximporter.h"
 int main(int argc, char *argv[])
 {
     srand(time(nullptr));
@@ -27,5 +28,8 @@ int main(int argc, char *argv[])
     QLabel note("OpenGL Support required");
     note.show();
 #endif
+
+    // CFbxImporter fbxImporter;
+    // fbxImporter.LoadFbx("D:/Dog/Project/Graphics/resource/test.fbx");
     return app.exec();
 }
