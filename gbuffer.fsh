@@ -62,7 +62,7 @@ void main(void)
     }
     else
     {
-            Color.xyz = color;
+         Color.xyz = color;
     }
 
     Param.x = rough;

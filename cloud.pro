@@ -74,3 +74,5 @@ INCLUDEPATH += include
 LIBS += -L$$PWD/lib/ \
         -llibfbxsdk  \
         -lassimp-vc140-mt \
+
+DISTFILES +=

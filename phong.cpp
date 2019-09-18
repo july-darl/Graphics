@@ -114,7 +114,7 @@ void Phong::SecondRender()
     QOpenGLShaderProgram* bloomProgram = nullptr;
     if(!bFire)
     {
-        bloomProgram = CResourceInfo::Inst()->CreateProgram("bloom.vsh","bloom.fsh","bloom");
+        bloomProgram = CResourceInfo::Inst()->CreateProgram("bloom.vsh","bloom.fsh", "bloom");
         bloomProgram->bind();
 
         if(albedo != 0)
@@ -128,7 +128,6 @@ void Phong::SecondRender()
         {
             bloomProgram->setUniformValue("color",QVector3D(color.x,color.y,color.z));
         }
-
 
         gl->glActiveTexture(GL_TEXTURE1);
         gl->glBindTexture(GL_TEXTURE_2D, maskTex);
@@ -205,7 +204,29 @@ void Phong::SetImage(const QString& path, GLuint& tex, QImage& img)
     gl->glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void Phong::SetAlbedo(const QString& path)
+void Phong::ForwardRender()
 {
+    QOpenGLFunctions* gl = QOpenGLContext::currentContext()->functions();
 
+    QOpenGLShaderProgram* forwardObjProgram = CResourceInfo::Inst()->CreateProgram("forward.vsh","forward.fsh","forward");
+    forwardObjProgram->bind();
+    forwardObjProgram->setUniformValue("ModelMatrix",modelMatrix);
+    forwardObjProgram->setUniformValue("IT_ModelMatrix",IT_modelMatrix);
+    forwardObjProgram->setUniformValue("ProjectMatrix",RenderCommon::Inst()->GetProjectMatrix());
+    forwardObjProgram->setUniformValue("ViewMatrix", Camera::Inst()->GetViewMatrix());
+
+    if(albedo != 0)
+    {
+        gl->glActiveTexture(GL_TEXTURE0);
+        gl->glBindTexture(GL_TEXTURE_2D, albedo);
+        forwardObjProgram->setUniformValue("albedo", 0);
+        forwardObjProgram->setUniformValue("color",QVector3D(-1,-1,-1));
+    }
+    else
+    {
+        forwardObjProgram->setUniformValue("color",QVector3D(color.x,color.y,color.z));
+    }
+
+    Draw(forwardObjProgram, false);
 }
+

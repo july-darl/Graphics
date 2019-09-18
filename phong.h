@@ -36,6 +36,7 @@ public:
     void        Render() override;
     void        SecondRender() override;
     void        DecalRender() override;
+    void        ForwardRender() override;
 };
 
 #endif // PHONG_H

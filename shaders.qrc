@@ -50,5 +50,7 @@
         <file>xray.fsh</file>
         <file>imgui.vsh</file>
         <file>imgui.fsh</file>
+        <file>forward.vsh</file>
+        <file>forward.fsh</file>
     </qresource>
 </RCC>
